@@ -342,26 +342,38 @@ for (i in 1:length(precursorMZ)) {
         ## get feature that has gradient of rank +-3 to calculated one
         devGradient <- MSMS_mod[i, "gradientMSMS"] - mappedGradients_uni
         ## upper and lower feature which is +-3
-        devGradient_ind_u <- which(devGradient == sort(devGradient[devGradient >= 0])[3])
-        devGradient_ind_l <- which(devGradient == sort(devGradient[devGradient <= 0])[3])
+        devGradient_ind_u <- which( devGradient == sort(devGradient[devGradient > 0])[3] )
+        devGradient_ind_l <- which( devGradient == sort(devGradient[devGradient < 0])[3] )
         
         ## retrieve respective mapped MSMS feature with lower and higher retention time
         ## that will use as a lower and upper bound for search space
-        upper <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_u]),indmapped), ]
-        lower <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_l]), indmapped), ]
+        lower <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_l]),indmapped), ]
+        upper <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_u]), indmapped), ]
         
         ## implement a rule for boundary values
         if (dim(upper)[1] == 0) {
             upper <- lower
             upper[,"rtWOS"] <- lower[,"rtWOS"] + 10
+            upper[,"rtMJ"] <- lower[,"rtMJ"] + 10
         }
         if (dim(lower)[1] == 0) {
             lower <- upper
             lower[,"rtWOS"] <- upper[,"rtWOS"] - 10
+            lower[,"rtMJ"] <- upper[,"rtMJ"] - 10
         }
+        
+        
         
         upperRT <- max(unique(upper[, "rtWOS"]))
         lowerRT <- min(unique(lower[, "rtWOS"]))
+        
+        ## implement a rule that there is a certain range of 20s to look into
+        ## when 
+        if (upperRT - lowerRT < 20) {
+            upperRT <- upperRT + 10
+            lowerRT <- lowerRT - 10
+        }
+        
         ind_tr <- intersect(which(peaklist[, "rt"] <= upperRT), which(peaklist[, "rt"] >= lowerRT))
         
         peaklist_tr <- peaklist[ind_tr, ]
@@ -369,97 +381,43 @@ for (i in 1:length(precursorMZ)) {
         ind_mapped <- which.min(abs(peaklist_tr[, "mz"] - precursorMZ[i]))
         mapped <- peaklist_tr[ind_mapped, ]
         
-        if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.01) {
+        if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.008) {
             
-            indWOS_minMZ <- ind_tr[ind_mapped]
+            ind_minMZ <- ind_tr[ind_mapped]
             
             ## set mapped2 to 1
-            MSMS_mod[i, "mapped2WOS"] <- 1
+            MSMS_mod[i, "mapped2WOS"] <- MSMS_mod[i, "mapped2MJ"] <- 1
             ## write gradient of profiling to column gradientWOS
-            MSMS_mod[i, "gradientWOS"] <- gradientProfiling[indWOS_minMZ]
+            MSMS_mod[i, "gradientWOS"] <- MSMS_mod[i, "gradientMJ"] <- gradientProfiling[ind_minMZ]
             
-            ## write mz of profiling to column mzWOS
-            MSMS_mod[i, "mzWOS"] <- peaklist[indWOS_minMZ, "mz"]
-            ## write retention time of profiling to column rtWOS
-            MSMS_mod[i, "rtWOS"] <- peaklist[indWOS_minMZ, "rt"]
+            ## write mz of profiling to column mzWOS and mzMJ
+            MSMS_mod[i, "mzWOS"] <- MSMS_mod[i, "mzMJ"] <- peaklist[ind_minMZ, "mz"]
+            ## write retention time of profiling to column rtWOS and rtMJ
+            MSMS_mod[i, "rtWOS"] <- MSMS_mod[i, "rtMJ"] <- peaklist[ind_minMZ, "rt"]
             
-            ## write numbers of biological replicates where feature is present
-            MSMS_mod[i, "att72WOS"] <- peaklist[indWOS_minMZ, "att72"]
-            MSMS_mod[i, "obt72WOS"] <- peaklist[indWOS_minMZ, "obt72"]
-            MSMS_mod[i, "clev72WOS"] <- peaklist[indWOS_minMZ, "clev72"]
-            MSMS_mod[i, "quad72WOS"] <- peaklist[indWOS_minMZ, "quad72"]
-            MSMS_mod[i, "x102772WOS"] <- peaklist[indWOS_minMZ, "x1072"]
-            MSMS_mod[i, "x5712672WOS"] <- peaklist[indWOS_minMZ, "x5772"]
+            ## write numbers of biological replicates where feature is present: C
+            MSMS_mod[i, "att0"] <- peaklist[ind_minMZ, "att0"]
+            MSMS_mod[i, "obt0"] <- peaklist[ind_minMZ, "obt0"]
+            MSMS_mod[i, "clev0"] <- peaklist[ind_minMZ, "clev0"]
+            MSMS_mod[i, "quad0"] <- peaklist[ind_minMZ, "quad0"]
+            MSMS_mod[i, "x10270"] <- peaklist[ind_minMZ, "x10270"]
+            MSMS_mod[i, "x571260"] <- peaklist[ind_minMZ, "x570"]
             
-        }
-    }
-    
-    ## for MeJA
-    indmapped <- which(MSMS_mod[, "mapped1MJ"] == 1)
-    mappedGradients <- MSMS_mod[indmapped, "gradientMSMS"]
-    mappedGradients_uni <- unique(mappedGradients)
-    
-    if (MSMS_mod[i,"mapped1MJ"] == 0) {
-        
-        ## get feature that has gradient of rank +-3 to calculated one
-        devGradient <- MSMS_mod[i, "gradientMSMS"] - mappedGradients_uni
-        ## upper and lower feature which is +-3
-        devGradient_ind_u <- which(devGradient == sort(devGradient[devGradient >= 0])[3])
-        devGradient_ind_l <- which(devGradient == sort(devGradient[devGradient <= 0])[3])
-        
-        ## retrieve respective mapped MSMS feature with lower and higher retention time
-        ## that will use as a lower and upper bound for search space
-        upper <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_u]),indmapped), ]
-        lower <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_l]), indmapped), ]
-        
-        ## implement a rule for boundary values
-        if (dim(upper)[1] == 0) {
-            upper <- lower
-            upper[,"rtMJ"] <- lower[,"rtMJ"] + 10
-        }
-        if (dim(lower)[1] == 0) {
-            lower <- upper
-            lower[,"rtMJ"] <- upper[,"rtMJ"] - 10
-        }
-        
-        upperRT <- max(unique(upper[, "rtMJ"]))
-        lowerRT <- min(unique(lower[, "rtMJ"]))
-        ind_tr <- intersect(which(peaklistMJ[, "rt"] <= upperRT), which(peaklistMJ[, "rt"] >= lowerRT))
-        
-        peaklist_tr <- peaklistMJ[ind_tr, ]
-        
-        ind_mapped <- which.min(abs(peaklist_tr[, "mz"] - precursorMZ[i]))
-        mapped <- peaklist_tr[ind_mapped, ]
-        
-        
-        if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.01) {
+            ## write numbers of biological replicates where feature is present: WOS
+            MSMS_mod[i, "att72WOS"] <- peaklist[ind_minMZ, "att72WOS"]
+            MSMS_mod[i, "obt72WOS"] <- peaklist[ind_minMZ, "obt72WOS"]
+            MSMS_mod[i, "clev72WOS"] <- peaklist[ind_minMZ, "clev72WOS"]
+            MSMS_mod[i, "quad72WOS"] <- peaklist[ind_minMZ, "quad72WOS"]
+            MSMS_mod[i, "x102772WOS"] <- peaklist[ind_minMZ, "x1072WOS"]
+            MSMS_mod[i, "x5712672WOS"] <- peaklist[ind_minMZ, "x5772WOS"]
             
-            indMJ_minMZ <- ind_tr[ind_mapped]
-            
-            ## set mapped2 to 1
-            MSMS_mod[i, "mapped2MJ"] <- 1
-            ## write gradient of profiling to column gradientMJ
-            MSMS_mod[i, "gradientMJ"] <- gradientProfilingMJ[indMJ_minMZ]
-            
-            ## write mz of profiling to column mzMJ
-            MSMS_mod[i, "mzMJ"] <- peaklistMJ[indMJ_minMZ, "mz"]
-            ## write retention time of profiling to column rtMJ
-            MSMS_mod[i, "rtMJ"] <- peaklistMJ[indMJ_minMZ, "rt"]
-            
-            ## write numbers of biological replicates where feature is present
-            MSMS_mod[i, "att0MJ"] <- peaklistMJ[indMJ_minMZ, "att0"]
-            MSMS_mod[i, "obt0MJ"] <- peaklistMJ[indMJ_minMZ, "obt0"]
-            MSMS_mod[i, "clev0MJ"] <- peaklistMJ[indMJ_minMZ, "clev0h"]
-            MSMS_mod[i, "quad0MJ"] <- peaklistMJ[indMJ_minMZ, "quad0h"]
-            MSMS_mod[i, "x10270MJ"] <- peaklistMJ[indMJ_minMZ, "x10270"]
-            MSMS_mod[i, "x571260MJ"] <- peaklistMJ[indMJ_minMZ, "x570"]
-            
-            MSMS_mod[i, "att72MJ"] <- peaklistMJ[indMJ_minMZ, "att72"]
-            MSMS_mod[i, "obt72MJ"] <- peaklistMJ[indMJ_minMZ, "obt72"]
-            MSMS_mod[i, "clev72MJ"] <- peaklistMJ[indMJ_minMZ, "clev72"]
-            MSMS_mod[i, "quad72MJ"] <- peaklistMJ[indMJ_minMZ, "quad72"]
-            MSMS_mod[i, "x102772MJ"] <- peaklistMJ[indMJ_minMZ, "x1072"]
-            MSMS_mod[i, "x5712672MJ"] <- peaklistMJ[indMJ_minMZ, "x5772"]
+            ## write numbers of biological replicates where feature is present: MJ
+            MSMS_mod[i, "att72MJ"] <- peaklist[ind_minMZ, "att72MJ"]
+            MSMS_mod[i, "obt72MJ"] <- peaklist[ind_minMZ, "obt72MJ"]
+            MSMS_mod[i, "clev72MJ"] <- peaklist[ind_minMZ, "clev72MJ"]
+            MSMS_mod[i, "quad72MJ"] <- peaklist[ind_minMZ, "quad72MJ"]
+            MSMS_mod[i, "x102772MJ"] <- peaklist[ind_minMZ, "x1072MJ"]
+            MSMS_mod[i, "x5712672MJ"] <- peaklist[ind_minMZ, "x5772MJ"]
             
         }
     }
@@ -609,40 +567,45 @@ for (i in 1:length(precursorMZ)) {
 MSMS_mod <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1WOS", "mapped1MJ", "mapped2WOS", "mapped2MJ")]) - 1, 1, sum) > 0,]
 
 ## change entries of biological replicates to binary values:
+## set the entries with less than 6 replicates to 0, with more than 6 replicates to 1
+entriesC <- MSMS_mod[,which(colnames(MSMS_mod) == "att0"):which(colnames(MSMS_mod) == "x571260")]
+entriesC[entriesC < 6] <- 0
+entriesC[entriesC >= 6] <- 1
 ## set the entries with less than 3 replicates to 0, with more than 3 replicates to 1
-entries <- MSMS_mod[,which(colnames(MSMS_mod) == "att0MJ"):which(colnames(MSMS_mod) == "x5712672MJ")]
-entries[entries < 3] <- 0
-entries[entries >= 3] <- 1
+entries72 <- MSMS_mod[,which(colnames(MSMS_mod) == "att72WOS"):which(colnames(MSMS_mod) == "x5712672MJ")]
+entries72[entries72 < 3] <- 0
+entries72[entries72 >= 3] <- 1
 
 ## write entries to MSMS_mod: replace by binary matrix entries
-MSMS_mod[,which(colnames(MSMS_mod) == "att0MJ"):which(colnames(MSMS_mod) == "x5712672MJ")] <- entries
+MSMS_mod[,which(colnames(MSMS_mod) == "att0"):which(colnames(MSMS_mod) == "x571260")] <- entriesC
+MSMS_mod[,which(colnames(MSMS_mod) == "att72WOS"):which(colnames(MSMS_mod) == "x5712672MJ")] <- entries72
 
 ## create MSMS_mod for WOS: create data frame with mappings for WOS only
-MSMS_WOS <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1WOS", "mapped2WOS")]) -1, 1, sum) > 0,]
+#MSMS_WOS <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1WOS", "mapped2WOS")]) -1, 1, sum) > 0,]
 ## remove column with MJ
-MSMS_WOS <- MSMS_WOS[, !(names(MSMS_WOS) %in% c("att0MJ", "obt0MJ","clev0MJ","quad0MJ","x10270MJ","x571260MJ"))]
-MSMS_WOS <- MSMS_WOS[, !(names(MSMS_WOS) %in% c("att72MJ", "obt72MJ", "clev72MJ", "quad72MJ", "x102772MJ", "x5712672MJ"))]
-MSMS_WOS <- MSMS_WOS[, !(names(MSMS_WOS) %in% c("mapped1MJ", "mapped2MJ"))]
+#MSMS_WOS <- MSMS_WOS[, !(names(MSMS_WOS) %in% c("att0MJ", "obt0MJ","clev0MJ","quad0MJ","x10270MJ","x571260MJ"))]
+#MSMS_WOS <- MSMS_WOS[, !(names(MSMS_WOS) %in% c("att72MJ", "obt72MJ", "clev72MJ", "quad72MJ", "x102772MJ", "x5712672MJ"))]
+#MSMS_WOS <- MSMS_WOS[, !(names(MSMS_WOS) %in% c("mapped1MJ", "mapped2MJ"))]
 
-uniqueWOS <- unique(MSMS_WOS[, "precursor"])
+uniquePrecursor <- unique(MSMS_mod[, "precursor"])
 ## first row entries with unique precursor
-indsWOS <- match(uniqueWOS, MSMS_WOS[, "precursor"])
+indsMSMS <- match(uniquePrecursor, MSMS_mod[, "precursor"])
 
 ## how many metabolites are found in each species?
-apply(data.matrix(MSMS_WOS[indsWOS, c("att72WOS", "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS")]), 2, sum)
+apply(data.matrix(MSMS_mod[indsMSMS, c("att72WOS", "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS")]), 2, sum)
 
 
 ## MSMS_mod for MJ0
-MSMS_MJ <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1MJ", "mapped2MJ")]) -1, 1, sum) > 0,]
+#MSMS_MJ <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1MJ", "mapped2MJ")]) -1, 1, sum) > 0,]
 ##MSMS_MJ <- MSMS_MJ[, !(names(MSMS_MJ0) %in% c("att0MJ", "obt0MJ","clev0MJ","quad0MJ","x10270MJ","x571260MJ"))]
-MSMS_MJ <- MSMS_MJ[, !(names(MSMS_MJ) %in% c("att72WOS", "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS"))]
-MSMS_MJ <- MSMS_MJ[, !(names(MSMS_MJ) %in% c("mapped1WOS", "mapped2WOS"))]
+#MSMS_MJ <- MSMS_MJ[, !(names(MSMS_MJ) %in% c("att72WOS", "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS"))]
+#MSMS_MJ <- MSMS_MJ[, !(names(MSMS_MJ) %in% c("mapped1WOS", "mapped2WOS"))]
 
-uniqueMJ <- unique(MSMS_MJ[, "precursor"])
-indsMJ <- match(uniqueMJ, MSMS_MJ[, "precursor"])
+#uniqueMJ <- unique(MSMS_MJ[, "precursor"])
+#indsMJ <- match(uniqueMJ, MSMS_MJ[, "precursor"])
 
-apply(data.matrix(MSMS_MJ[indsMJ, c("att0MJ", "obt0MJ","clev0MJ","quad0MJ","x10270MJ","x571260MJ")]), 2, sum)
-apply(data.matrix(MSMS_MJ[indsMJ, c("att72MJ", "obt72MJ", "clev72MJ", "quad72MJ", "x102772MJ", "x5712672MJ")]), 2, sum)
+apply(data.matrix(MSMS_mod[indsMSMS, c("att0", "obt0","clev0","quad0","x10270","x571260")]), 2, sum)
+apply(data.matrix(MSMS_mod[indsMSMS, c("att72MJ", "obt72MJ", "clev72MJ", "quad72MJ", "x102772MJ", "x5712672MJ")]), 2, sum)
 
 ## end
 
