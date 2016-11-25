@@ -50,7 +50,7 @@ peaklistMSMS2 <- getPeaklist(anFAMSMS2)
 ##save(anMSMS2, anFMSMS2, anIMSMS2, anICMSMS2, anFAMSMS2, peaklistMSMS2, file = "MSMS_CAMERA.RData")
 
 
-## recreate xcms combined peaklist for WOS and MeJA, use the shell
+## re-create xcms combined peaklist for WOS and MeJA (shell)
 setwd("/home/thomas/Documents/University/Master/MScArbeit/Metabolic_profiling/WOS_MeJA_0h_72h/")
 load("./metabolicProfiling.RData")
 ##xset <- xcmsSet(method="centWave", ppm=20, snthresh=10, peakwidth=c(5,18), BPPARAM = MulticoreParam(workers = 6))
@@ -99,13 +99,6 @@ peaklist2[, cols] <- apply(peaklist2[, cols], 2, FUN = function(x) (x / quantile
 ## write pcgroups of peaklist to peaklist2
 peaklist2[, "pcgroup"] <- peaklist[, "pcgroup"]
 # save(an, anF, anI, anIC, anFA, peaklist, an2, anF2, anI2, anIC2, anFA2, peaklist2, file = "./CAMERA_complete.RData")
-
-
-
-
-
-
-
 
 MSMS <- read.csv("../../MSMS/idmsms_3_3_0.8_minCor_rmv50.csv")
 MSMS <- MSMS[,c(2,3,4,8)]
@@ -161,7 +154,6 @@ precursorMZ[1]
 ##load("/home/thomas/Documents/University/Master/MScArbeit/Metabolic_profiling/WOS_0h_72h/CAMERA_complete.RData")
 peaklist <- getPeaklist(anFA)
 gradientProfiling <- numeric(length = length(peaklist[,"rt"]))
-peaklist[,"rt"][1:10]
 precursorRT_minute_profiling <- peaklist[,"rt"] / 60 - 1 ## 1 min isocratic
 gradientProfiling[which(precursorRT_minute_profiling <= 0)] <- 0.9
 gradientProfiling[which(precursorRT_minute_profiling > 0)] <- 0.9 - 0.0727272727272727 * precursorRT_minute_profiling[which(precursorRT_minute_profiling > 0)]
@@ -215,74 +207,59 @@ MSMS_mod[, "mapped2MJ"] <- factor(x = MSMS_mod[, "mapped2MJ"], levels = c(0,1))
 devWOS <- numeric(length(precursorMZ))
 devMJ <- numeric(length(precursorMZ))
 
-gradient <- 0.03 ## tolerated deviance in gradient
+gradient <- 0.1 ## tolerated deviance in gradient, define greater deviance 
+## since we use a "combined" peaklist of WOS and MeJA runs
 
 
 ## round 1: define deviance for gradient and deviance for mz and map based on
 ## these criteria
 for (i in 1:length(precursorMZ)) {
     
-    ## WOS 
+    ## WOS+MJ
     ## shrink space of possible mapped features by gradient deviance
-    indWOS <- which(abs(gradientMSMS[i] - gradientProfiling) <= gradient)
+    ind <- which(abs(gradientMSMS[i] - gradientProfiling) <= gradient)
     ## get feature with minimum deviance to mz
-    indWOS_minMZ <- indWOS[which.min(abs(precursorMZ[i] - peaklist[indWOS, "mz"] ))]
-    minInPeaklistWOS <- peaklist[indWOS_minMZ,]
+    ind_minMZ <- ind[which.min(abs(precursorMZ[i] - peaklist[ind, "mz"] ))]
+    minInPeaklist <- peaklist[ind_minMZ,]
     
-    if (abs(minInPeaklistWOS["mz"] - precursorMZ[i]) <= 0.01) { ## tolerated m/z deviance is 0.01
+    if (abs(minInPeaklist["mz"] - precursorMZ[i]) <= 0.01) { ## tolerated m/z deviance is 0.01
         ## set mapped1 to 1
         MSMS_mod[i, "mapped1WOS"] <- 1
-        ## write gradient of profiling to column gradientWOS
-        MSMS_mod[i, "gradientWOS"] <- gradientProfiling[indWOS_minMZ]
-        
-        ## write mz of profiling to column mzWOS
-        MSMS_mod[i, "mzWOS"] <- peaklist[indWOS_minMZ, "mz"]
-        ## write retention time of profiling to column rtWOS
-        MSMS_mod[i, "rtWOS"] <- peaklist[indWOS_minMZ, "rt"]
-        
-        ## write numbers of biological replicates where feature is present
-        MSMS_mod[i, "att72WOS"] <- peaklist[indWOS_minMZ, "att72"]
-        MSMS_mod[i, "obt72WOS"] <- peaklist[indWOS_minMZ, "obt72"]
-        MSMS_mod[i, "clev72WOS"] <- peaklist[indWOS_minMZ, "clev72"]
-        MSMS_mod[i, "quad72WOS"] <- peaklist[indWOS_minMZ, "quad72"]
-        MSMS_mod[i, "x102772WOS"] <- peaklist[indWOS_minMZ, "x1072"]
-        MSMS_mod[i, "x5712672WOS"] <- peaklist[indWOS_minMZ, "x5772"]
-    }
-    
-    ## MJ
-    ## shrink space of possible mapped features by gradient deviance
-    indMJ <- which(abs(gradientMSMS[i] - gradientProfilingMJ) <= gradient)
-    ## get feature with minimum deviance to mz
-    indMJ_minMZ <- indMJ[which.min(abs(precursorMZ[i] - peaklistMJ[indMJ, "mz"] ))]
-    minInPeaklistMJ <- peaklistMJ[indMJ_minMZ,]
-    
-    if (abs(peaklistMJ[indMJ_minMZ, "mz"] - precursorMZ[i]) <= 0.01) { ## tolerated m/z deviance is 0.01
-        ## set mapped1 to 1
         MSMS_mod[i, "mapped1MJ"] <- 1
-        ## write gradient of profiling to column gradientMJ
-        MSMS_mod[i, "gradientMJ"] <- gradientProfilingMJ[indMJ_minMZ]
+        ## write gradient of profiling to column gradientWOS
+        MSMS_mod[i, "gradientWOS"] <- MSMS_mod[i, "gradientMJ"] <- gradientProfiling[ind_minMZ]
         
-        ## write mz of profiling to column mzMJ
-        MSMS_mod[i, "mzMJ"] <- peaklistMJ[indMJ_minMZ, "mz"]
-        ## write retention time of profiling to column rtWOS
-        MSMS_mod[i, "rtMJ"] <- peaklistMJ[indMJ_minMZ, "rt"]
+        ## write mz of profiling to column mzWOS and mzMJ
+        MSMS_mod[i, "mzWOS"] <- MSMS_mod[i, "mzMJ"] <- peaklist[ind_minMZ, "mz"]
+        ## write retention time of profiling to column rtWOS and rtMJ
+        MSMS_mod[i, "rtWOS"] <- MSMS_mod[i, "rtMJ"] <- peaklist[ind_minMZ, "rt"]
         
-        ## write numbers of biological replicates where feature is present
-        MSMS_mod[i, "att0MJ"] <- peaklistMJ[indMJ_minMZ, "att0"]
-        MSMS_mod[i, "obt0MJ"] <- peaklistMJ[indMJ_minMZ, "obt0"]
-        MSMS_mod[i, "clev0MJ"] <- peaklistMJ[indMJ_minMZ, "clev0h"]
-        MSMS_mod[i, "quad0MJ"] <- peaklistMJ[indMJ_minMZ, "quad0h"]
-        MSMS_mod[i, "x10270MJ"] <- peaklistMJ[indMJ_minMZ, "x10270"]
-        MSMS_mod[i, "x571260MJ"] <- peaklistMJ[indMJ_minMZ, "x570"]
+        ## write numbers of biological replicates where feature is present: C
+        MSMS_mod[i, "att0"] <- peaklist[ind_minMZ, "att0"]
+        MSMS_mod[i, "obt0"] <- peaklist[ind_minMZ, "obt0"]
+        MSMS_mod[i, "clev0"] <- peaklist[ind_minMZ, "clev0"]
+        MSMS_mod[i, "quad0"] <- peaklist[ind_minMZ, "quad0"]
+        MSMS_mod[i, "x10270"] <- peaklist[ind_minMZ, "x10270"]
+        MSMS_mod[i, "x571260"] <- peaklist[ind_minMZ, "x570"]
         
-        MSMS_mod[i, "att72MJ"] <- peaklistMJ[indMJ_minMZ, "att72"]
-        MSMS_mod[i, "obt72MJ"] <- peaklistMJ[indMJ_minMZ, "obt72"]
-        MSMS_mod[i, "clev72MJ"] <- peaklistMJ[indMJ_minMZ, "clev72"]
-        MSMS_mod[i, "quad72MJ"] <- peaklistMJ[indMJ_minMZ, "quad72"]
-        MSMS_mod[i, "x102772MJ"] <- peaklistMJ[indMJ_minMZ, "x1072"]
-        MSMS_mod[i, "x5712672MJ"] <- peaklistMJ[indMJ_minMZ, "x5772"]
+        ## write numbers of biological replicates where feature is present: WOS
+        MSMS_mod[i, "att72WOS"] <- peaklist[ind_minMZ, "att72WOS"]
+        MSMS_mod[i, "obt72WOS"] <- peaklist[ind_minMZ, "obt72WOS"]
+        MSMS_mod[i, "clev72WOS"] <- peaklist[ind_minMZ, "clev72WOS"]
+        MSMS_mod[i, "quad72WOS"] <- peaklist[ind_minMZ, "quad72WOS"]
+        MSMS_mod[i, "x102772WOS"] <- peaklist[ind_minMZ, "x1072WOS"]
+        MSMS_mod[i, "x5712672WOS"] <- peaklist[ind_minMZ, "x5772WOS"]
+        
+        ## write numbers of biological replicates where feature is present: MJ
+        MSMS_mod[i, "att72MJ"] <- peaklist[ind_minMZ, "att72MJ"]
+        MSMS_mod[i, "obt72MJ"] <- peaklist[ind_minMZ, "obt72MJ"]
+        MSMS_mod[i, "clev72MJ"] <- peaklist[ind_minMZ, "clev72MJ"]
+        MSMS_mod[i, "quad72MJ"] <- peaklist[ind_minMZ, "quad72MJ"]
+        MSMS_mod[i, "x102772MJ"] <- peaklist[ind_minMZ, "x1072MJ"]
+        MSMS_mod[i, "x5712672MJ"] <- peaklist[ind_minMZ, "x5772MJ"]
     }
 }
+
 # for (i in 1:length(precursorMZ)) {
 #     
 #     ## WOS 
@@ -353,7 +330,7 @@ for (i in 1:length(precursorMZ)) {
 ## mapped) features can be mapped
 
 for (i in 1:length(precursorMZ)) {
-
+    
     ## for WOS
     ##mappedWOS <- which(MSMS_mod[, "mapped1WOS"] == 1 ) 
     indmapped <- which(MSMS_mod[, "mapped1WOS"] == 1)
@@ -416,7 +393,7 @@ for (i in 1:length(precursorMZ)) {
             
         }
     }
-
+    
     ## for MeJA
     indmapped <- which(MSMS_mod[, "mapped1MJ"] == 1)
     mappedGradients <- MSMS_mod[indmapped, "gradientMSMS"]
@@ -454,21 +431,21 @@ for (i in 1:length(precursorMZ)) {
         ind_mapped <- which.min(abs(peaklist_tr[, "mz"] - precursorMZ[i]))
         mapped <- peaklist_tr[ind_mapped, ]
         
-    
+        
         if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.01) {
-
+            
             indMJ_minMZ <- ind_tr[ind_mapped]
-
+            
             ## set mapped2 to 1
             MSMS_mod[i, "mapped2MJ"] <- 1
             ## write gradient of profiling to column gradientMJ
             MSMS_mod[i, "gradientMJ"] <- gradientProfilingMJ[indMJ_minMZ]
-
+            
             ## write mz of profiling to column mzMJ
             MSMS_mod[i, "mzMJ"] <- peaklistMJ[indMJ_minMZ, "mz"]
             ## write retention time of profiling to column rtMJ
             MSMS_mod[i, "rtMJ"] <- peaklistMJ[indMJ_minMZ, "rt"]
-
+            
             ## write numbers of biological replicates where feature is present
             MSMS_mod[i, "att0MJ"] <- peaklistMJ[indMJ_minMZ, "att0"]
             MSMS_mod[i, "obt0MJ"] <- peaklistMJ[indMJ_minMZ, "obt0"]
@@ -476,17 +453,154 @@ for (i in 1:length(precursorMZ)) {
             MSMS_mod[i, "quad0MJ"] <- peaklistMJ[indMJ_minMZ, "quad0h"]
             MSMS_mod[i, "x10270MJ"] <- peaklistMJ[indMJ_minMZ, "x10270"]
             MSMS_mod[i, "x571260MJ"] <- peaklistMJ[indMJ_minMZ, "x570"]
-
+            
             MSMS_mod[i, "att72MJ"] <- peaklistMJ[indMJ_minMZ, "att72"]
             MSMS_mod[i, "obt72MJ"] <- peaklistMJ[indMJ_minMZ, "obt72"]
             MSMS_mod[i, "clev72MJ"] <- peaklistMJ[indMJ_minMZ, "clev72"]
             MSMS_mod[i, "quad72MJ"] <- peaklistMJ[indMJ_minMZ, "quad72"]
             MSMS_mod[i, "x102772MJ"] <- peaklistMJ[indMJ_minMZ, "x1072"]
             MSMS_mod[i, "x5712672MJ"] <- peaklistMJ[indMJ_minMZ, "x5772"]
-
+            
         }
     }
 }
+
+
+# for (i in 1:length(precursorMZ)) {
+# 
+#     ## for WOS
+#     ##mappedWOS <- which(MSMS_mod[, "mapped1WOS"] == 1 ) 
+#     indmapped <- which(MSMS_mod[, "mapped1WOS"] == 1)
+#     mappedGradients <- MSMS_mod[indmapped, "gradientMSMS"]
+#     mappedGradients_uni <- unique(mappedGradients)
+#     
+#     if (MSMS_mod[i,"mapped1WOS"] == 0) {
+#         
+#         ## get feature that has gradient of rank +-3 to calculated one
+#         devGradient <- MSMS_mod[i, "gradientMSMS"] - mappedGradients_uni
+#         ## upper and lower feature which is +-3
+#         devGradient_ind_u <- which(devGradient == sort(devGradient[devGradient >= 0])[3])
+#         devGradient_ind_l <- which(devGradient == sort(devGradient[devGradient <= 0])[3])
+#         
+#         ## retrieve respective mapped MSMS feature with lower and higher retention time
+#         ## that will use as a lower and upper bound for search space
+#         upper <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_u]),indmapped), ]
+#         lower <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_l]), indmapped), ]
+#         
+#         ## implement a rule for boundary values
+#         if (dim(upper)[1] == 0) {
+#             upper <- lower
+#             upper[,"rtWOS"] <- lower[,"rtWOS"] + 10
+#         }
+#         if (dim(lower)[1] == 0) {
+#             lower <- upper
+#             lower[,"rtWOS"] <- upper[,"rtWOS"] - 10
+#         }
+#         
+#         upperRT <- max(unique(upper[, "rtWOS"]))
+#         lowerRT <- min(unique(lower[, "rtWOS"]))
+#         ind_tr <- intersect(which(peaklist[, "rt"] <= upperRT), which(peaklist[, "rt"] >= lowerRT))
+#         
+#         peaklist_tr <- peaklist[ind_tr, ]
+#         
+#         ind_mapped <- which.min(abs(peaklist_tr[, "mz"] - precursorMZ[i]))
+#         mapped <- peaklist_tr[ind_mapped, ]
+#         
+#         if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.01) {
+#             
+#             indWOS_minMZ <- ind_tr[ind_mapped]
+#             
+#             ## set mapped2 to 1
+#             MSMS_mod[i, "mapped2WOS"] <- 1
+#             ## write gradient of profiling to column gradientWOS
+#             MSMS_mod[i, "gradientWOS"] <- gradientProfiling[indWOS_minMZ]
+#             
+#             ## write mz of profiling to column mzWOS
+#             MSMS_mod[i, "mzWOS"] <- peaklist[indWOS_minMZ, "mz"]
+#             ## write retention time of profiling to column rtWOS
+#             MSMS_mod[i, "rtWOS"] <- peaklist[indWOS_minMZ, "rt"]
+#             
+#             ## write numbers of biological replicates where feature is present
+#             MSMS_mod[i, "att72WOS"] <- peaklist[indWOS_minMZ, "att72"]
+#             MSMS_mod[i, "obt72WOS"] <- peaklist[indWOS_minMZ, "obt72"]
+#             MSMS_mod[i, "clev72WOS"] <- peaklist[indWOS_minMZ, "clev72"]
+#             MSMS_mod[i, "quad72WOS"] <- peaklist[indWOS_minMZ, "quad72"]
+#             MSMS_mod[i, "x102772WOS"] <- peaklist[indWOS_minMZ, "x1072"]
+#             MSMS_mod[i, "x5712672WOS"] <- peaklist[indWOS_minMZ, "x5772"]
+#             
+#         }
+#     }
+# 
+#     ## for MeJA
+#     indmapped <- which(MSMS_mod[, "mapped1MJ"] == 1)
+#     mappedGradients <- MSMS_mod[indmapped, "gradientMSMS"]
+#     mappedGradients_uni <- unique(mappedGradients)
+#     
+#     if (MSMS_mod[i,"mapped1MJ"] == 0) {
+#         
+#         ## get feature that has gradient of rank +-3 to calculated one
+#         devGradient <- MSMS_mod[i, "gradientMSMS"] - mappedGradients_uni
+#         ## upper and lower feature which is +-3
+#         devGradient_ind_u <- which(devGradient == sort(devGradient[devGradient >= 0])[3])
+#         devGradient_ind_l <- which(devGradient == sort(devGradient[devGradient <= 0])[3])
+#         
+#         ## retrieve respective mapped MSMS feature with lower and higher retention time
+#         ## that will use as a lower and upper bound for search space
+#         upper <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_u]),indmapped), ]
+#         lower <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_l]), indmapped), ]
+#         
+#         ## implement a rule for boundary values
+#         if (dim(upper)[1] == 0) {
+#             upper <- lower
+#             upper[,"rtMJ"] <- lower[,"rtMJ"] + 10
+#         }
+#         if (dim(lower)[1] == 0) {
+#             lower <- upper
+#             lower[,"rtMJ"] <- upper[,"rtMJ"] - 10
+#         }
+#         
+#         upperRT <- max(unique(upper[, "rtMJ"]))
+#         lowerRT <- min(unique(lower[, "rtMJ"]))
+#         ind_tr <- intersect(which(peaklistMJ[, "rt"] <= upperRT), which(peaklistMJ[, "rt"] >= lowerRT))
+#         
+#         peaklist_tr <- peaklistMJ[ind_tr, ]
+#         
+#         ind_mapped <- which.min(abs(peaklist_tr[, "mz"] - precursorMZ[i]))
+#         mapped <- peaklist_tr[ind_mapped, ]
+#         
+#     
+#         if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.01) {
+# 
+#             indMJ_minMZ <- ind_tr[ind_mapped]
+# 
+#             ## set mapped2 to 1
+#             MSMS_mod[i, "mapped2MJ"] <- 1
+#             ## write gradient of profiling to column gradientMJ
+#             MSMS_mod[i, "gradientMJ"] <- gradientProfilingMJ[indMJ_minMZ]
+# 
+#             ## write mz of profiling to column mzMJ
+#             MSMS_mod[i, "mzMJ"] <- peaklistMJ[indMJ_minMZ, "mz"]
+#             ## write retention time of profiling to column rtMJ
+#             MSMS_mod[i, "rtMJ"] <- peaklistMJ[indMJ_minMZ, "rt"]
+# 
+#             ## write numbers of biological replicates where feature is present
+#             MSMS_mod[i, "att0MJ"] <- peaklistMJ[indMJ_minMZ, "att0"]
+#             MSMS_mod[i, "obt0MJ"] <- peaklistMJ[indMJ_minMZ, "obt0"]
+#             MSMS_mod[i, "clev0MJ"] <- peaklistMJ[indMJ_minMZ, "clev0h"]
+#             MSMS_mod[i, "quad0MJ"] <- peaklistMJ[indMJ_minMZ, "quad0h"]
+#             MSMS_mod[i, "x10270MJ"] <- peaklistMJ[indMJ_minMZ, "x10270"]
+#             MSMS_mod[i, "x571260MJ"] <- peaklistMJ[indMJ_minMZ, "x570"]
+# 
+#             MSMS_mod[i, "att72MJ"] <- peaklistMJ[indMJ_minMZ, "att72"]
+#             MSMS_mod[i, "obt72MJ"] <- peaklistMJ[indMJ_minMZ, "obt72"]
+#             MSMS_mod[i, "clev72MJ"] <- peaklistMJ[indMJ_minMZ, "clev72"]
+#             MSMS_mod[i, "quad72MJ"] <- peaklistMJ[indMJ_minMZ, "quad72"]
+#             MSMS_mod[i, "x102772MJ"] <- peaklistMJ[indMJ_minMZ, "x1072"]
+#             MSMS_mod[i, "x5712672MJ"] <- peaklistMJ[indMJ_minMZ, "x5772"]
+# 
+#         }
+#     }
+# }
 
 
 
