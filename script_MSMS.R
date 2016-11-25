@@ -304,7 +304,7 @@ for (i in 1:length(precursorMZ)) {
         lowerRT <- min(unique(lower[, "rtWOS"]))
         
         ## implement a rule that there is a certain range of 20s to look into
-        ## when 
+        ## when the range between upperRT and lowerRT is low
         if (upperRT - lowerRT < 20) {
             upperRT <- upperRT + 10
             lowerRT <- lowerRT - 10
@@ -317,7 +317,7 @@ for (i in 1:length(precursorMZ)) {
         ind_mapped <- which.min(abs(peaklist_tr[, "mz"] - precursorMZ[i]))
         mapped <- peaklist_tr[ind_mapped, ]
         
-        if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.008) {
+        if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.008) { ## use deviance of 0.008
             
             ind_minMZ <- ind_tr[ind_mapped]
             
@@ -365,11 +365,13 @@ for (i in 1:length(precursorMZ)) {
 MSMS_mod <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1WOS", "mapped1MJ", "mapped2WOS", "mapped2MJ")]) - 1, 1, sum) > 0,]
 
 ## change entries of biological replicates to binary values:
-## set the entries with less than 6 replicates to 0, with more than 6 replicates to 1
+## set the entries with less than 6 replicates to 0, 
+## with more or equal than 6 replicates to 1
 entriesC <- MSMS_mod[,which(colnames(MSMS_mod) == "att0"):which(colnames(MSMS_mod) == "x571260")]
 entriesC[entriesC < 6] <- 0
 entriesC[entriesC >= 6] <- 1
-## set the entries with less than 3 replicates to 0, with more than 3 replicates to 1
+## set the entries with less than 3 replicates to 0, 
+## with more or equal than 3 replicates to 1
 entries72 <- MSMS_mod[,which(colnames(MSMS_mod) == "att72WOS"):which(colnames(MSMS_mod) == "x5712672MJ")]
 entries72[entries72 < 3] <- 0
 entries72[entries72 >= 3] <- 1
@@ -387,4 +389,182 @@ indsMSMS <- match(uniquePrecursor, MSMS_mod[, "precursor"])
 apply(data.matrix(MSMS_mod[indsMSMS, c("att0", "obt0","clev0","quad0","x10270","x571260")]), 2, sum)
 apply(data.matrix(MSMS_mod[indsMSMS, c("att72WOS", "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS")]), 2, sum)
 apply(data.matrix(MSMS_mod[indsMSMS, c("att72MJ", "obt72MJ", "clev72MJ", "quad72MJ", "x102772MJ", "x5712672MJ")]), 2, sum)
+
+MSMS_mod <- cbind(MSMS_mod, pc_group = unlist(lapply(strsplit(as.character(MSMS_mod[, "precursor"]), "_"), "[", 3)))
+
+## get pc_group for C, WOS and MeJA
+## C
+att0 <- unique(MSMS_mod[which(MSMS_mod[, "att0"] == 1), "pc_group"])
+obt0 <- unique(MSMS_mod[which(MSMS_mod[, "obt0"] == 1), "pc_group"])
+clev0 <- unique(MSMS_mod[which(MSMS_mod[, "clev0"] == 1), "pc_group"])
+quad0 <- unique(MSMS_mod[which(MSMS_mod[, "quad0"] == 1), "pc_group"])
+x10270 <- unique(MSMS_mod[which(MSMS_mod[, "x10270"] == 1), "pc_group"])
+x571260 <- unique(MSMS_mod[which(MSMS_mod[, "x571260"] == 1), "pc_group"])
+## WOS
+att72WOS <- unique(MSMS_mod[which(MSMS_mod[, "att72WOS"] == 1), "pc_group"])
+obt72WOS <- unique(MSMS_mod[which(MSMS_mod[, "obt72WOS"] == 1), "pc_group"])
+clev72WOS <- unique(MSMS_mod[which(MSMS_mod[, "clev72WOS"] == 1), "pc_group"])
+quad72WOS <- unique(MSMS_mod[which(MSMS_mod[, "quad72WOS"] == 1), "pc_group"])
+x102772WOS <- unique(MSMS_mod[which(MSMS_mod[, "x102772WOS"] == 1), "pc_group"])
+x5712672WOS <- unique(MSMS_mod[which(MSMS_mod[, "x5712672WOS"] == 1), "pc_group"])
+## MJ
+att72MJ <- unique(MSMS_mod[which(MSMS_mod[, "att72MJ"] == 1), "pc_group"])
+obt72MJ <- unique(MSMS_mod[which(MSMS_mod[, "obt72MJ"] == 1), "pc_group"])
+clev72MJ <- unique(MSMS_mod[which(MSMS_mod[, "clev72MJ"] == 1), "pc_group"])
+quad72MJ <- unique(MSMS_mod[which(MSMS_mod[, "quad72MJ"] == 1), "pc_group"])
+x102772MJ <- unique(MSMS_mod[which(MSMS_mod[, "x102772MJ"] == 1), "pc_group"])
+x5712672MJ <- unique(MSMS_mod[which(MSMS_mod[, "x5712672MJ"] == 1), "pc_group"])
+
+library(VennDiagram)
+AttObtOverlap0h <- calculate.overlap(list("N. attenuata" = att0, "N. obtusifolia" =obt0))
+NaNo0 <- length(AttObtOverlap0h$a3) ## shared with Na, No
+Na0 <- length(AttObtOverlap0h$a1) - NaNo0 ## total number of N. attenuata
+No0 <- length(AttObtOverlap0h$a2) - NaNo0 ## total number of N. obtusifolia
+AttObtOverlap72h <- calculate.overlap(list("N. attenuata" = att72WOS, 
+                                           "N. obtusifolia" = obt72WOS))
+NaNo72 <- length(AttObtOverlap72h$a3) ## shared with Na, No
+Na72 <- length(AttObtOverlap72h$a1) - NaNo72 ## total number of N. attenuata
+No72 <- length(AttObtOverlap72h$a2) - NaNo72 ## total number of N. obtusifolia
+AttObtOverlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ, 
+                                             "N. obtusifolia" = obt72MJ))
+NaNo72MJ <- length(AttObtOverlap72hMJ$a3) ## shared with Na, No
+Na72MJ <- length(AttObtOverlap72hMJ$a1) - NaNo72MJ ## total number of N. attenuata
+No72MJ <- length(AttObtOverlap72hMJ$a2) - NaNo72MJ ## total number of N. obtusifolia
+
+## N. clev
+AttObtClevOverlap0h <- calculate.overlap(list("N. attenuata" = att0, 
+                                              "N. obtusifolia" = obt0,
+                                              "N. clevelandii" = clev0))
+
+ClevNaNo0 <- length(AttObtClevOverlap0h$a5) ## shared with Na, No
+ClevNa0 <- length(AttObtClevOverlap0h$a4) ## shared with Na
+ClevNo0 <- length(AttObtClevOverlap0h$a6) ## shared with No
+ClevNovel0 <- length(AttObtClevOverlap0h$a7) ## novel
+AttObtClevOverlap72h <- calculate.overlap(list("N. attenuata" = att72WOS, 
+                                               "N. obtusifolia" = obt72WOS,
+                                               "N. clevelandii" = clev72WOS))
+ClevNaNo72 <- length(AttObtClevOverlap72h$a5) ## shared with Na, No
+ClevNa72 <- length(AttObtClevOverlap72h$a4) ## shared with Na
+ClevNo72 <- length(AttObtClevOverlap72h$a6) ## shared with No
+ClevNovel72 <- length(AttObtClevOverlap72h$a7) ## novel
+AttObtClevOverlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ, 
+                                                 "N. obtusifolia" = obt72MJ,
+                                                 "N. clevelandii" = clev72MJ))
+ClevNaNo72MJ <- length(AttObtClevOverlap72hMJ$a5) ## shared with Na, No
+ClevNa72MJ <- length(AttObtClevOverlap72hMJ$a4) ## shared with Na
+ClevNo72MJ <- length(AttObtClevOverlap72hMJ$a6) ## shared with No
+ClevNovel72MJ <- length(AttObtClevOverlap72hMJ$a7) ## novel
+
+## N. quad
+AttObtQuadOverlap0h <- calculate.overlap(list("N. attenuata" = att0, 
+                                              "N. obtusifolia" = obt0,
+                                              "N. quadrivalvis" = quad0))
+QuadNaNo0 <- length(AttObtQuadOverlap0h$a5) ## shared with Na, No
+QuadNa0 <- length(AttObtQuadOverlap0h$a4) ## shared with Na
+QuadNo0 <- length(AttObtQuadOverlap0h$a6) ## shared with No
+QuadNovel0 <- length(AttObtQuadOverlap0h$a7) ## novel
+AttObtQuadOverlap72h <- calculate.overlap(list("N. attenuata" = att72WOS, 
+                                               "N. obtusifolia" = obt72WOS,
+                                               "N. quadrivalvis" = quad72WOS))
+QuadNaNo72 <- length(AttObtQuadOverlap72h$a5) ## shared with Na, No
+QuadNa72 <- length(AttObtQuadOverlap72h$a4) ## shared with Na
+QuadNo72 <- length(AttObtQuadOverlap72h$a6) ## shared with No
+QuadNovel72 <- length(AttObtQuadOverlap72h$a7) ## novel
+AttObtQuadOverlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ, 
+                                                 "N. obtusifolia" = obt72MJ,
+                                                 "N. quadrivalvis" = quad72MJ))
+QuadNaNo72MJ <- length(AttObtQuadOverlap72hMJ$a5) ## shared with Na, No
+QuadNa72MJ <- length(AttObtQuadOverlap72hMJ$a4) ## shared with Na
+QuadNo72MJ <- length(AttObtQuadOverlap72hMJ$a6) ## shared with No
+QuadNovel72MJ <- length(AttObtQuadOverlap72hMJ$a7) ## novel
+
+## N. xobt1027
+AttObtX1027Overlap0h <- calculate.overlap(list("N. attenuata" = att0, 
+                                               "N. obtusifolia" = obt0,
+                                               "N. x 1027" = x10270))
+X1027NaNo0 <- length(AttObtX1027Overlap0h$a5) ## shared with Na, No
+X1027Na0 <- length(AttObtX1027Overlap0h$a4) ## shared with Na
+X1027No0 <- length(AttObtX1027Overlap0h$a6) ## shared with No
+X1027Novel0 <- length(AttObtX1027Overlap0h$a7) ## novel
+AttObtX1027Overlap72h <- calculate.overlap(list("N. attenuata" = att72WOS, 
+                                                "N. obtusifolia" = obt72WOS,
+                                                "N. x 1027" = x102772WOS))
+X1027NaNo72 <- length(AttObtX1027Overlap72h$a5) ## shared with Na, No
+X1027Na72 <- length(AttObtX1027Overlap72h$a4) ## shared with Na
+X1027No72 <- length(AttObtX1027Overlap72h$a6) ## shared with No
+X1027Novel72 <- length(AttObtX1027Overlap72h$a7) ## novel
+AttObtX1027Overlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ, 
+                                                  "N. obtusifolia" = obt72MJ,
+                                                  "N. x 1027" = x102772MJ))
+X1027NaNo72MJ <- length(AttObtX1027Overlap72hMJ$a5) ## shared with Na, No
+X1027Na72MJ <- length(AttObtX1027Overlap72hMJ$a4) ## shared with Na
+X1027No72MJ <- length(AttObtX1027Overlap72hMJ$a6) ## shared with No
+X1027Novel72MJ <- length(AttObtX1027Overlap72hMJ$a7) ## novel
+
+## N. xobt57126
+AttObtX57126Overlap0h <- calculate.overlap(list("N. attenuata" = att0, 
+                                                "N. obtusifolia" = obt0,
+                                                "N. x 57126" = x571260))
+X57126NaNo0 <- length(AttObtX57126Overlap0h$a5) ## shared with Na, No
+X57126Na0 <- length(AttObtX57126Overlap0h$a4) ## shared with Na
+X57126No0 <- length(AttObtX57126Overlap0h$a6) ## shared with No
+X57126Novel0 <- length(AttObtX57126Overlap0h$a7) ## novel
+AttObtX57126Overlap72h <- calculate.overlap(list("N. attenuata" = att72WOS, 
+                                                 "N. obtusifolia" = obt72WOS,
+                                                 "N. x 57126" = x5712672WOS))
+X57126NaNo72 <- length(AttObtX57126Overlap72h$a5) ## shared with Na, No
+X57126Na72 <- length(AttObtX57126Overlap72h$a4) ## shared with Na
+X57126No72 <- length(AttObtX57126Overlap72h$a6) ## shared with No
+X57126Novel72 <- length(AttObtX57126Overlap72h$a7) ## novel
+AttObtX57126Overlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ, 
+                                                   "N. obtusifolia" = obt72MJ,
+                                                   "N. x 57126" = x5712672MJ))
+X57126NaNo72MJ <- length(AttObtX57126Overlap72hMJ$a5) ## shared with Na, No
+X57126Na72MJ <- length(AttObtX57126Overlap72hMJ$a4) ## shared with Na
+X57126No72MJ <- length(AttObtX57126Overlap72hMJ$a6) ## shared with No
+X57126Novel72MJ <- length(AttObtX57126Overlap72hMJ$a7) ## novel
+
+df <- data.frame(metabolites = c(Na0, NaNo0, Na72, NaNo72, Na72MJ, NaNo72MJ,
+                                 No0, NaNo0, No72, NaNo72, No72MJ, NaNo72MJ,
+                                 ClevNovel0, ClevNo0, ClevNa0, ClevNaNo0, 
+                                 ClevNovel72, ClevNo72, ClevNa72, ClevNaNo72,
+                                 ClevNovel72MJ, ClevNo72MJ, ClevNa72MJ, ClevNaNo72MJ,
+                                 QuadNovel0, QuadNo0, QuadNa0, QuadNaNo0,
+                                 QuadNovel72, QuadNo72, QuadNa72, QuadNaNo72,
+                                 QuadNovel72MJ, QuadNo72MJ, QuadNa72MJ, QuadNaNo72MJ,
+                                 X1027Novel0, X1027No0, X1027Na0, X1027NaNo0,
+                                 X1027Novel72, X1027No72, X1027Na72, X1027NaNo72,
+                                 X1027Novel72MJ, X1027No72MJ, X1027Na72MJ, X1027NaNo72MJ,
+                                 X57126Novel0, X57126No0, X57126Na0, X57126NaNo0,
+                                 X57126Novel72, X57126No72, X57126Na72, X57126NaNo72,
+                                 X57126Novel72MJ, X57126No72MJ, X57126Na72MJ, X57126NaNo72MJ), 
+                 groups = c(rep(c("N. attenuata", "N. attenuata / N. obtusifolia"), 3),
+                            rep(c("N. obtusifolia", "N. attenuata / N. obtusifolia"), 3),
+                            rep(c("N. clevelandii (novel)", "N. obtusifolia", "N. attenuata", "N. attenuata / N. obtusifolia"),3),
+                            rep(c("N. quadrivalvis (novel)", "N. obtusifolia", "N. attenuata", "N. attenuata / N. obtusifolia"),3),
+                            rep(c("N. x obtusiata 10/27 (novel)", "N. obtusifolia", "N. attenuata", "N. attenuata / N. obtusifolia"),3),
+                            rep(c("N. x obtusiata 57/126 (novel)", "N. obtusifolia", "N. attenuata", "N. attenuata / N. obtusifolia"),3)), 
+                 treatment = c(rep(c(rep("C", 2), rep("W+OS", 2), rep("MJ", 2)), 2),
+                               rep(c(rep("C",4), rep("W+OS",4), rep("MJ",4)), 4)),
+                 species = c(rep("N. attenuata", 6), rep("N. obtusifolia", 6), rep("N. clevelandii", 12), rep("N. quadrivalvis", 12), rep("N. x obtusiata 10/27", 12), rep("N. x obtusiata 57/126", 12)))
+
+#df.melt <- melt(df)
+df$treatment <- factor(x = df$treatment, levels = c("C", "W+OS", "MJ"), ordered  = TRUE)
+#df.melt$groups <- factor(x = df.melt$groups, levels = c("N. attenuata", "N. otusifolia", "N. attenuata / N. obtusifolia","novel"), ordered = TRUE)
+df$species <- factor(x = df$species, levels = c("N. attenuata", "N. obtusifolia", "N. clevelandii", "N. quadrivalvis", "N. x obtusiata 10/27", "N. x obtusiata 57/126"), ordered = TRUE)
+df$groups <- factor(x = df$groups, levels = c("N. attenuata", "N. obtusifolia", "N. attenuata / N. obtusifolia", "N. clevelandii (novel)", "N. quadrivalvis (novel)", "N. x obtusiata 10/27 (novel)", "N. x obtusiata 57/126 (novel)"), ordered = TRUE)
+##df <- transform(df, groups = factor(groups, levels = c("Na", "No", "NaNo","novel")))
+##df$groups <- reorder(df$groups, X = sort(df$groups))#, FUN = function(x) sort(x))
+##attributes(df$groups) <- list("No"= 2, "NaNo" = 3, "Na" = 1, "novel" = 4)
+ggplot(arrange(df, groups), aes(y = metabolites, x = treatment, fill = groups)) + 
+    geom_bar(stat="identity") + 
+    scale_fill_manual(values = c(rep(c("red", "blue", "purple1", "orange", "seagreen4", "plum2", "slateblue"), 3))) + 
+    facet_grid(. ~ species) + theme(strip.text = element_text(face = "italic")) + 
+    labs(x = "", y = "") + guides(fill = guide_legend(title="metabolites originating from")) + 
+    theme(axis.text.y = element_text(size=12), axis.title = element_text(size=16), 
+          axis.text.x = element_text(size = 8),
+          legend.title = element_text(size = 12 ), strip.text=element_text(size=7), 
+          legend.text = element_text(face = "italic", size = 12)) 
+
+
 
