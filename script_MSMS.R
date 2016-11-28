@@ -103,6 +103,8 @@ peaklist2[, "pcgroup"] <- peaklist[, "pcgroup"]
 MSMS <- read.csv("../../MSMS/idmsms_3_3_0.8_minCor_rmv50.csv")
 MSMS <- MSMS[,c(2,3,4,8)]
 
+## how many features were created? 
+length(unique(MSMS[, "precursor"])) ## 793
 
 ## remove these entries from the MSMS which do not have the precursor ions in the fragmentation
 ## start 
@@ -119,6 +121,9 @@ for (i in 1:length(uniqPrecMZRTPC)) {
 ## remove lines which have check == 0
 MSMS <- MSMS[MSMS_mod[, "check"] == 1, ]
 ## end remove
+
+## how many features are remaining? 
+length(unique(MSMS[, "precursor"])) ## 575
 
 
 ## rename column inten to intensity
@@ -204,10 +209,10 @@ MSMS_mod[, "mapped2MJ"] <- factor(x = MSMS_mod[, "mapped2MJ"], levels = c(0,1))
 
 
 ## W+OS
-devWOS <- numeric(length(precursorMZ))
-devMJ <- numeric(length(precursorMZ))
+#devWOS <- numeric(length(precursorMZ))
+#devMJ <- numeric(length(precursorMZ))
 
-gradient <- 0.1 ## tolerated deviance in gradient, define greater deviance 
+gradient <- 0.08 ## tolerated deviance in gradient, define greater deviance 
 ## since we use a "combined" peaklist of WOS and MeJA runs
 
 
@@ -261,6 +266,9 @@ for (i in 1:length(precursorMZ)) {
 }
 ## end of round 1
 
+## how many features were mapped (round 1)?
+length(unique(MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1),"precursor"])) ## 275
+
 ## round 2: use results from round 1 and define a retention time window 
 ## between already mapped features, check then in this window if other (not yet
 ## mapped) features can be mapped
@@ -303,7 +311,7 @@ for (i in 1:length(precursorMZ)) {
         upperRT <- max(unique(upper[, "rtWOS"]))
         lowerRT <- min(unique(lower[, "rtWOS"]))
         
-        ## implement a rule that there is a certain range of 20s to look into
+        ## implement a rule that there is a certain range of at least 20s to look into
         ## when the range between upperRT and lowerRT is low
         if (upperRT - lowerRT < 20) {
             upperRT <- upperRT + 10
@@ -359,10 +367,25 @@ for (i in 1:length(precursorMZ)) {
     }
 }
 
+## how many features were mapped (round 2)?
+length(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"precursor"])) ## 64
+
 
 ## truncate MSMS_mod: remove entries which have sum of 0 in the mentioned columns
 ## i.e. remove the ones that could not be mapped
 MSMS_mod <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1WOS", "mapped1MJ", "mapped2WOS", "mapped2MJ")]) - 1, 1, sum) > 0,]
+
+## how many features were mapped (round 1, round 2)?
+length(unique(MSMS_mod[ ,"precursor"])) ## 339 
+## percentage: 
+length(unique(MSMS_mod[ ,"precursor"])) / length(unique(MSMS[, "precursor"]))*100 ## 58%
+
+## distribution along the chromatogramm for the mapped features
+hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[,"precursor"])), "_"), "[", 2))), 
+     ylim = c(0,120), main = "after mapping", xlab = "retention time (s)")
+## distribution along the chromatogramm before mapping
+hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS[,"precursor"])), "_"), "[", 2))), 
+     ylim = c(0,120), main = "before mapping", xlab = "retention time (s)")
 
 ## change entries of biological replicates to binary values:
 ## set the entries with less than 6 replicates to 0, 
