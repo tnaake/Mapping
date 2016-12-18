@@ -161,7 +161,7 @@ peaklist <- getPeaklist(anFA)
 gradientProfiling <- numeric(length = length(peaklist[,"rt"]))
 precursorRT_minute_profiling <- peaklist[,"rt"] / 60 - 1 ## 1 min isocratic
 gradientProfiling[which(precursorRT_minute_profiling <= 0)] <- 0.9
-gradientProfiling[which(precursorRT_minute_profiling > 0)] <- 0.9 - 0.0727272727272727 * precursorRT_minute_profiling[which(precursorRT_minute_profiling > 0)]
+gradientProfiling[which(precursorRT_minute_profiling > 0)] <- 0.9 - 0.072727272727272727272727 * precursorRT_minute_profiling[which(precursorRT_minute_profiling > 0)]
 ## from minute 12 (11) isocratic 0.1
 gradientProfiling[which(precursorRT_minute_profiling > 11)] <- 0.1
 
@@ -212,7 +212,7 @@ MSMS_mod[, "mapped2MJ"] <- factor(x = MSMS_mod[, "mapped2MJ"], levels = c(0,1))
 #devWOS <- numeric(length(precursorMZ))
 #devMJ <- numeric(length(precursorMZ))
 
-gradient <- 0.08 ## tolerated deviance in gradient, define greater deviance 
+gradient <- 0.05 ## tolerated deviance in gradient, define greater deviance 
 ## since we use a "combined" peaklist of WOS and MeJA runs
 
 
@@ -227,7 +227,7 @@ for (i in 1:length(precursorMZ)) {
     ind_minMZ <- ind[which.min(abs(precursorMZ[i] - peaklist[ind, "mz"] ))]
     minInPeaklist <- peaklist[ind_minMZ,]
     
-    if (abs(minInPeaklist["mz"] - precursorMZ[i]) <= 0.01) { ## tolerated m/z deviance is 0.01
+    if (abs(minInPeaklist["mz"] - precursorMZ[i]) <= 0.008) { ## tolerated m/z deviance is 0.008
         ## set mapped1 to 1
         MSMS_mod[i, "mapped1WOS"] <- 1
         MSMS_mod[i, "mapped1MJ"] <- 1
@@ -267,7 +267,7 @@ for (i in 1:length(precursorMZ)) {
 ## end of round 1
 
 ## how many features were mapped (round 1)?
-length(unique(MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1),"precursor"])) ## 275
+length(unique(MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1),"precursor"])) ## 201 
 
 ## round 2: use results from round 1 and define a retention time window 
 ## between already mapped features, check then in this window if other (not yet
@@ -286,8 +286,8 @@ for (i in 1:length(precursorMZ)) {
         ## get feature that has gradient of rank +-3 to calculated one
         devGradient <- MSMS_mod[i, "gradientMSMS"] - mappedGradients_uni
         ## upper and lower feature which is +-3
-        devGradient_ind_u <- which( devGradient == sort(devGradient[devGradient > 0])[3] )
-        devGradient_ind_l <- which( devGradient == sort(devGradient[devGradient < 0])[3] )
+        devGradient_ind_u <- which( devGradient == sort(devGradient[devGradient > 0])[5] )
+        devGradient_ind_l <- which( devGradient == sort(devGradient[devGradient < 0])[5] )
         
         ## retrieve respective mapped MSMS feature with lower and higher retention time
         ## that will use as a lower and upper bound for search space
@@ -368,7 +368,7 @@ for (i in 1:length(precursorMZ)) {
 }
 
 ## how many features were mapped (round 2)?
-length(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"precursor"])) ## 64
+length(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"precursor"])) ## 156
 
 
 ## truncate MSMS_mod: remove entries which have sum of 0 in the mentioned columns
@@ -376,11 +376,17 @@ length(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"precursor"])) ## 64
 MSMS_mod <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1WOS", "mapped1MJ", "mapped2WOS", "mapped2MJ")]) - 1, 1, sum) > 0,]
 
 ## how many features were mapped (round 1, round 2)?
-length(unique(MSMS_mod[ ,"precursor"])) ## 339 
+length(unique(MSMS_mod[ ,"precursor"])) ## 338
 ## percentage: 
-length(unique(MSMS_mod[ ,"precursor"])) / length(unique(MSMS[, "precursor"]))*100 ## 58%
+length(unique(MSMS_mod[ ,"precursor"])) / length(unique(MSMS[, "precursor"]))*100 ## 58.78%
+
 
 ## distribution along the chromatogramm for the mapped features
+hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1),"precursor"])), "_"), "[", 2))), 
+     ylim = c(0,120), main = "after mapping (round 1)", xlab = "retention time (s)")
+hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"precursor"])), "_"), "[", 2))), 
+     ylim = c(0,120), main = "after mapping (round 2)", xlab = "retention time (s)")
+
 hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[,"precursor"])), "_"), "[", 2))), 
      ylim = c(0,120), main = "after mapping", xlab = "retention time (s)")
 ## distribution along the chromatogramm before mapping
@@ -403,6 +409,60 @@ entries72[entries72 >= 3] <- 1
 MSMS_mod[,which(colnames(MSMS_mod) == "att0"):which(colnames(MSMS_mod) == "x571260")] <- entriesC
 MSMS_mod[,which(colnames(MSMS_mod) == "att72WOS"):which(colnames(MSMS_mod) == "x5712672MJ")] <- entries72
 
+## 
+MSMS_mod <- cbind(MSMS_mod, pc_group = unlist(lapply(strsplit(as.character(MSMS_mod[, "precursor"]), "_"), "[", 3)))
+
+
+
+###########################################################
+## remove reduntant features:
+## collapse MSMS_mod into one spectrum when they have the same pcgroup
+pcgroups <- as.numeric(as.character(MSMS_mod[, "pc_group"]))
+pcgroups_unique <- unique(pcgroups)
+indNewFeat <- match(unique(as.character(MSMS_mod[, "precursor"])), as.character(MSMS_mod[,"precursor"]))
+
+pcgroups <- as.character(MSMS_mod[indNewFeat, "pc_group"])
+for (i in unique(pcgroups)) {
+    indI <- which(pcgroups == i)
+    if (length(indI) > 1) {
+        indI <- which(MSMS_mod[, "pc_group"] == unique(pcgroups[indI]))
+        precMZ <- lapply(strsplit(as.character(MSMS_mod[indI, "precursor"]), "_"), "[", 1)
+        precMZ <- as.numeric(unlist(precMZ))
+        ## take always the one with the highest precursor value and 
+        ## set the other to 0
+        mappedCol <- c("mapped1WOS", "mapped1MJ", "mapped2WOS", "mapped2MJ")
+        MSMS_mod[indI[which(precMZ != max(precMZ))], mappedCol] <- rep(0, 4)
+    }
+}
+
+MSMS_mod <- MSMS_mod[apply(cbind(MSMS_mod[,"mapped1WOS"], MSMS_mod[, "mapped2WOS"]) - 1, 1, sum) == 1,]
+
+
+## after this step, there are still features that were double mapped, i.e. that
+## have the same mapped mz and rt values, remove the ones which have higher
+## pc group
+removeDoubleMappings <- function(MSMS) {
+    MSMSmzrt <- paste(MSMS[, "mzWOS"], MSMS[, "rtWOS"])
+    dupMSMSmzrt <- duplicated(MSMSmzrt)
+    MSMS_dup <- MSMS
+    for (i in 1:length(MSMSmzrt)) {
+        if (dupMSMSmzrt[i]) {
+            ind <- which(MSMSmzrt == MSMSmzrt[i])
+            pcgroups <- as.numeric(as.character(MSMS[ind, "pc_group"]))
+            if (max(pcgroups) != min(pcgroups)) {
+                MSMS_dup[ind[-which(pcgroups == min(pcgroups))],] <- rep(NA, 34)
+            }
+        }
+    }
+    narows <- apply(MSMS_dup, 1, function(x){any(is.na(x))})
+    MSMS_dup <- MSMS_dup[!narows,]
+    return(MSMS_dup)
+}
+MSMS_mod <- removeDoubleMappings(MSMS_mod)
+####################################################################
+
+
+## how many metabolites are found in each species?
 uniquePrecursor <- unique(MSMS_mod[, "precursor"])
 
 ## get first row entries with unique precursor
@@ -413,7 +473,6 @@ apply(data.matrix(MSMS_mod[indsMSMS, c("att0", "obt0","clev0","quad0","x10270","
 apply(data.matrix(MSMS_mod[indsMSMS, c("att72WOS", "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS")]), 2, sum)
 apply(data.matrix(MSMS_mod[indsMSMS, c("att72MJ", "obt72MJ", "clev72MJ", "quad72MJ", "x102772MJ", "x5712672MJ")]), 2, sum)
 
-MSMS_mod <- cbind(MSMS_mod, pc_group = unlist(lapply(strsplit(as.character(MSMS_mod[, "precursor"]), "_"), "[", 3)))
 
 ## get pc_group for C, WOS and MeJA
 ## C
@@ -437,6 +496,7 @@ clev72MJ <- unique(MSMS_mod[which(MSMS_mod[, "clev72MJ"] == 1), "pc_group"])
 quad72MJ <- unique(MSMS_mod[which(MSMS_mod[, "quad72MJ"] == 1), "pc_group"])
 x102772MJ <- unique(MSMS_mod[which(MSMS_mod[, "x102772MJ"] == 1), "pc_group"])
 x5712672MJ <- unique(MSMS_mod[which(MSMS_mod[, "x5712672MJ"] == 1), "pc_group"])
+
 
 library(VennDiagram)
 AttObtOverlap0h <- calculate.overlap(list("N. attenuata" = att0, "N. obtusifolia" =obt0))
@@ -579,6 +639,8 @@ df$groups <- factor(x = df$groups, levels = c("N. attenuata", "N. obtusifolia", 
 ##df <- transform(df, groups = factor(groups, levels = c("Na", "No", "NaNo","novel")))
 ##df$groups <- reorder(df$groups, X = sort(df$groups))#, FUN = function(x) sort(x))
 ##attributes(df$groups) <- list("No"= 2, "NaNo" = 3, "Na" = 1, "novel" = 4)
+library(ggplot2)
+library(dplyr)
 ggplot(arrange(df, groups), aes(y = metabolites, x = treatment, fill = groups)) + 
     geom_bar(stat="identity") + 
     scale_fill_manual(values = c(rep(c("red", "blue", "purple1", "orange", "seagreen4", "plum2", "slateblue"), 3))) + 
@@ -589,5 +651,160 @@ ggplot(arrange(df, groups), aes(y = metabolites, x = treatment, fill = groups)) 
           legend.title = element_text(size = 12 ), strip.text=element_text(size=7), 
           legend.text = element_text(face = "italic", size = 12)) 
 
+## get inducibility for W+OS and MeJA
+Compounds_bin <- function(peaklist2, cols) {
+    features <- apply(peaklist2[, cols], 1, table, useNA = "always")
+    features_l <- lapply(1:length(features), function(x) as.vector(features[[x]][length(features[[x]])]))
+    binary <- logical(dim(peaklist2)[1])
+    indFeatures <- which(unlist(features_l) <= 2)
+    binary[indFeatures] <- TRUE
+    return(binary)
+}
 
 
+inducibility <- function(peaklist1, peaklist2, ind0 = 1:5, ind72 = 6:10, cols = 20:79, paired = TRUE) {
+    if (length(ind0) != 5) stop("length of ind0 not 5")
+    if (length(ind72) != 5) stop("length of ind72 not 5")
+    
+    geno_bin_0 <- Compounds_bin(peaklist2, cols[ind0])
+    geno_bin_72 <- Compounds_bin(peaklist2, cols[ind72])
+    
+    
+    ## pc group for genotype
+    pcgroupGenotype <- as.numeric(peaklist1[, "pcgroup"])
+    #PCGROUP <- unique(pcgroupGenotype)
+    
+    pcgroup0 <- as.numeric(peaklist1[geno_bin_0, "pcgroup"])
+    PCGROUP_uni_0 <- unique(pcgroup0)
+    pcgroup72 <- as.numeric(peaklist1[geno_bin_72, "pcgroup"])
+    PCGROUP_uni_72 <- unique(pcgroup72)
+    
+    ## how many compounds does the genotype have?
+    ## check first for each i how many are not filled
+    peaklist0 <- peaklist1[, cols[ ind0 ]]
+    peaklist0_2 <- peaklist2[, cols[ ind0 ]]
+    peaklist72_2 <- peaklist2[, cols [ind72 ]]
+    peaklist72 <- peaklist1[, cols[ ind72 ]]
+    
+    # pcgroupGenotype <- as.numeric(pcgroupGenotype)
+    
+    ## create inducibilityGenotype, a vector to store if a metabolite (i.e. pcgroup) is induced
+    # inducibilityGenotype <- numeric(length(PCGROUP))
+    # pvalueGenotype <- numeric(length(PCGROUP))
+    # fc <- numeric(length(PCGROUP))
+    inducibilityGenotype_72 <- rep(NA, length(unique(pcgroupGenotype)))
+    pvalueGenotype_72 <- rep(NA, length(unique(pcgroupGenotype)))
+    fc <- rep(NA, max(pcgroupGenotype))
+    
+    for (i in PCGROUP_uni_72) { ## 1, 2, ... length(PCGROUP) ## was for(i in 1:length(PCGROUP))
+        inds <- which(pcgroupGenotype == i) 
+        ## truncate inds so that only those inds are used which actually show up in peaklist for
+        ## 72 h time point
+        inds <- inds[geno_bin_72[inds]] 
+        
+        if (length(inds) != 0) {
+            pvalues <- numeric(length(inds))
+            peak0 <- as.matrix(peaklist0[inds, ])
+            peak72 <- as.matrix(peaklist72[inds, ])
+            test <- lapply(1:length(inds), FUN = function(x) {
+                ## cond 1, test if we can do shapiro.test, if not assume that data is not normally-distributed
+                cond1 <- if(inherits(try(shapiro.test(peak0[x,]), silent = TRUE), "try-error")) {0.01} else{shapiro.test(peak0[x,])$p.value}
+                ## cond 2, test if we can do shapiro.test, if not assume that data is not normally-distributed
+                cond2 <- if(inherits(try(shapiro.test(peak72[x,]), silent= TRUE), "try-error")) {0.01} else{shapiro.test(peak72[x,])$p.value}
+                if (cond1 > 0.05 & cond2 > 0.05) {
+                    t.test(peak0[x,], peak72[x,], alternative = "less", paired = paired)$p.value
+                } else {
+                    if(inherits(try(wilcox.test(as.numeric(peak0[x,]), as.numeric(peak72[x,]), alternative = "less", paired = paired, exact = TRUE), silent = TRUE), "try-error")) {0.5} else{wilcox.test(as.numeric(peak0[x,]), as.numeric(peak72[x,]), alternative = "less", paired = paired, exact = TRUE)$p.value}}
+                
+            })
+            
+            ## fold change
+            meanPeak0 <- apply(peak0, 1, mean)
+            meanPeak72 <- apply(peak72, 1, mean)
+            meanFoldChange <- mean(meanPeak72 / meanPeak0)
+            fc[i] <- meanFoldChange
+            
+            test_unlist <- unlist(test)
+            pvalues[test_unlist <= 0.05] <- TRUE
+            if (sum(pvalues) / length(pvalues) >= 0.66) {
+                inducibilityGenotype_72[i] <- TRUE
+            } else {
+                inducibilityGenotype_72[i] <- FALSE}
+            pvalueGenotype_72[i] <- mean(test_unlist)
+        }
+        if (length(inds) == 0) pvalueGenotype_72[i] <- NA
+        if (length(inds) == 0) inducibilityGenotype_72[i] <- NA
+        if (length(inds) == 0) fc[i] <- NA
+        
+    }
+    
+    ## how many compounds are induced? -1 because of remaining NA value
+    return(list(
+        "percentInduced" = sum(inducibilityGenotype_72, na.rm = TRUE) / (length(unique(PCGROUP_uni_72))), 
+        "pcgroupGenotype_0" = sort(PCGROUP_uni_0),
+        "pcgroupGenotype_72" = sort(PCGROUP_uni_72),
+        "inducibility" = inducibilityGenotype_72,
+        "p_values" = pvalueGenotype_72, 
+        "fold_change" = fc))
+}
+
+## remove unncessary row entries in peaklist
+truncatePeaklist <- function(peaklist, MSMS_mod, mode = c("WOS", "MJ")) {
+    peaklistNew <- NULL
+    peaklistPC <- as.numeric(peaklist[, "pcgroup"])
+    uniquePrecursor <- as.character(unique(MSMS_mod[, "precursor"]))
+    for (i in 1:length(uniquePrecursor)) {
+        inds <- which(MSMS_mod[, "precursor"] == as.character(uniquePrecursor[i]))
+    
+        if (mode == "WOS") {
+            mapped1 <- "mapped1WOS"
+            mapped2 <- "mapped2WOS"
+            rt <- "rtWOS"
+            mz <- "mzWOS"
+        }
+        if (mode == "MJ") {
+            mapped1 <- "mapped1MJ"
+            mapped2 <- "mapped2MJ"
+            rt <- "rtMJ"
+            mz <- "mzMJ"
+        }
+    
+        if (any(c(as.numeric(MSMS_mod[inds, mapped1]), as.numeric(MSMS_mod[inds, mapped2])) - 1 == 1)) {
+            peaklistInd <- unique(
+                which(peaklist[, "rt"] == unique(MSMS_mod[inds, rt])),
+                which(peaklist[, "mz"] == unique(MSMS_mod[inds,  mz])))
+            peaklistPC_ind <- as.character(unique(peaklistPC[peaklistInd]))
+            peaklistPC_ind <- min(as.numeric(peaklistPC_ind))
+            if (length(peaklistPC_ind) > 1) {print(i); stop("")}
+            peaklistNew <- rbind(peaklistNew, 
+                                 peaklist[which(peaklistPC == peaklistPC_ind),])
+        
+        }
+    }
+    return(peaklistNew)
+}
+
+peaklistWOS <- truncatePeaklist(peaklist, MSMS_mod, "WOS")
+dim(peaklistWOS)
+
+peaklistMJ <- truncatePeaklist(peaklist, MSMS_mod, "MJ")
+dim(peaklistMJ)
+
+duplicated(as.character(MSMS_mod[indNewFeat, "pc_group"]))
+
+MSMS_mod[MSMS_mod[, "precursor"] == "161.106448_77.890992_3",1:5]
+MSMS_mod[MSMS_mod[, "precursor"] == "163.1223773_77.928456_3", 1:5]
+MSMS_mod[MSMS_mod[, "precursor"] == "194.9658752_78.754976_3", 1:5]
+MSMS_mod[MSMS_mod[, "precursor"] == "346.0458079_77.387968_3", 1:5]
+
+MSMS_mod[MSMS_mod[, "precursor"] == "743.3480699_2066.31948_124", 1:5] 
+MSMS_mod[MSMS_mod[, "precursor"] == "743.3518917_2061.59248_2859", 1:5]
+
+MSMS_mod[MSMS_mod[, "precursor"] == "971.4123472_1215.184976_287", 1:5]
+MSMS_mod[MSMS_mod[, "precursor"] == "971.4129519_1195.921984_2665", 1:5]
+
+attWOS72 <- inducibility(peaklist, peaklist2, ind0 = 1:5, ind72 = 6:10, cols, paired =T)
+obtWOS72 <- inducibility(peaklist, peaklist2, ind0 = 11:15, ind72 = 16:20, cols, paired =T)
+
+
+s
