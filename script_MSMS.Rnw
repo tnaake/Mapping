@@ -2,7 +2,8 @@
 library (MetCirc)
 setwd("/home/thomas/Documents/University/Master/MScArbeit/MSMS/")
 
-##xsetMSMS <- xcmsSet(file = "CDFs/MS", method="centWave", ppm=20, snthresh=10, peakwidth=c(5,18))
+## xcms parameter settings as described in Patty et al. 2012, Nature Protocols
+##xsetMSMS <- xcmsSet(file = "CDFs/MS", method="centWave", ppm=30, snthresh=10, peakwidth=c(5,20))
 ##classes <- c("attMSWOS72", "obtMSWOS72", "clevMSWOS72", "quadMSWOS72", "x1027MSWOS72", "x57126MSWOS72")
 ## classes <- c("att20evWOS72", "att30evWOS72", "att40evWOS72", "attMSWOS72",
 ##             "obt20evWOS72", "obt30evWOS72", "obt40evWOS72", "obtMSWOS72",
@@ -25,10 +26,10 @@ setwd("/home/thomas/Documents/University/Master/MScArbeit/MSMS/")
 ## add classes
 ##sampclass(xsetMSMS) <- classes
 ## 
-##xset2MSMS <- group(xsetMSMS, method="density", minfrac=0.5, minsamp=1, bw=10, mzwid=0.01)
+##xset2MSMS <- group(xsetMSMS, method="density", minfrac=0.5, minsamp=1, bw=2, mzwid=0.025)
 ##xset3MSMS <- retcor(xset2MSMS, family= "s", plottype= "m", missing=1, extra=1, span=1)
-##xset4MSMS <- group(xset3MSMS, method="density", mzwid=0.01, minfrac=0.5, 
-##               minsamp=1, bw=5)
+##xset4MSMS <- group(xset3MSMS, method="density", mzwid=0.025, minfrac=0.5, 
+##               minsamp=1, bw=2)
 ##xset5MSMS <- fillPeaks(xset4MSMS, method = "chrom")
 ##save(xsetMSMS, xset2MSMS, xset3MSMS, xset4MSMS, file = "MSMS_xcms.RData")
 load("MSMS_xcms.RData")
@@ -54,7 +55,7 @@ peaklistMSMS2 <- getPeaklist(anFAMSMS2)
 ## re-create xcms combined peaklist for WOS and MeJA (shell)
 setwd("/home/thomas/Documents/University/Master/MScArbeit/Metabolic_profiling/WOS_MeJA_0h_72h/")
 load("./metabolicProfiling.RData")
-##xset <- xcmsSet(method="centWave", ppm=20, snthresh=10, peakwidth=c(5,18), BPPARAM = MulticoreParam(workers = 6))
+##xset <- xcmsSet(method="centWave", ppm=30, snthresh=10, peakwidth=c(5,20), BPPARAM = MulticoreParam(workers = 6))
 ##classes <- c(rep("att0", 5),  rep("att72WOS", 5),
 ##    rep("obt0", 5), rep("obt72WOS", 5),
 ##    rep("clev0", 5),  rep("clev72WOS", 5),
@@ -68,11 +69,11 @@ load("./metabolicProfiling.RData")
 ##    rep("x10270", 5),  rep("x1072MJ", 5),
 ##    rep("x570", 5), rep("x5772MJ", 5))
 ##sampclass(xset) <- classes
-##xset2 <- group(xset, method="density", minfrac=0.5, minsamp=2, bw=10, mzwid=0.05) ## mzwid = 0.01
+##xset2 <- group(xset, method="density", minfrac=0.5, minsamp=2, bw=2, mzwid=0.025) ## mzwid = 0.01
 ##xset3 <- retcor(xset2, family= "s", plottype= "m", missing=1, extra=1, span=1)
-##xset4 <- group(xset3, method="density", bw=10, mzwid=0.05, minfrac=0.5, minsamp=2)
-##xset5 <- fillPeaks(xset4, method = "chrom")
+##xset4 <- group(xset3, method="density", bw=2, mzwid=0.025, minfrac=0.5, minsamp=2)
 ##cleanParallel()
+##xset5 <- fillPeaks(xset4, method = "chrom")
 ##save(xset, xset2, xset3, xset4, xset5, file = "./metabolicProfiling.RData")
 
 load("./CAMERA_complete.RData")
@@ -107,18 +108,19 @@ peaklist2[, "pcgroup"] <- peaklist[, "pcgroup"]
 <<MSMS>>=
 MSMS <- read.csv("../../MSMS/idmsms_3_3_0.8_minCor_rmv50.csv")
 MSMS <- MSMS[,c(2,3,4,8)]
+colnames(MSMS)[which(colnames(MSMS) == "precursor")] <- "id"
 
 ## how many features were created? 
-length(unique(MSMS[, "precursor"])) ## 793
+length(unique(MSMS[, "id"])) ## 793
 
-## remove these entries from the MSMS which do not have the precursor ions in the fragmentation
-## start 
-uniqPrecMZRTPC <- unique(as.character(MSMS[, "precursor"]))
-PrecMZRTPC <- as.character(MSMS[, "precursor"])
+## remove these entries from the MSMS which do not have the precursor ions (id) in the fragmentation
+## start remove
+uniqPrecMZRTPC <- unique(as.character(MSMS[, "id"]))
+PrecMZRTPC <- as.character(MSMS[, "id"])
  
 MSMS_mod <- cbind(MSMS, "check" = numeric(dim(MSMS)[1]))
 for (i in 1:length(uniqPrecMZRTPC)) {
-    mzPC <- as.numeric(cutUniquePreMZ(uniqPrecMZRTPC[i], splitPattern = "_", splitInd = 1))
+    mzPC <- as.numeric(cutUniquePrecursor(uniqPrecMZRTPC[i], splitPattern = "_", splitInd = 1))
     inds <- which(PrecMZRTPC == uniqPrecMZRTPC[i])
     mzGROUPS <- MSMS[inds, "mz"]
     if( any(abs(mzGROUPS - mzPC) < 0.02) ) MSMS_mod[inds, "check"] <- TRUE
@@ -128,12 +130,12 @@ MSMS <- MSMS[MSMS_mod[, "check"] == 1, ]
 ## end remove
 
 ## how many features are remaining? 
-length(unique(MSMS[, "precursor"])) ## 575
+length(unique(MSMS[, "id"])) ## 575
 
 
 ## rename column inten to intensity
 colnames(MSMS)[which(colnames(MSMS) == "inten")] <- "intensity"
-##colnames(MSMS)[which(colnames(MSMS) == "precursor")] <- "pcgroup_precursorMZ"
+##colnames(MSMS)[which(colnames(MSMS) == "id")] <- "pcgroup_precursorMZ"
 # 
 # ## truncate MSMS (after 40 min there is only isocratic 15% A and 85% B)
 # ## truncate MSMS after 41 min = 60*41 s = 2460 s
@@ -142,13 +144,15 @@ colnames(MSMS)[which(colnames(MSMS) == "inten")] <- "intensity"
 
 
 <<mapping>>=
-precursorMZ <- unlist(lapply(strsplit(as.character(MSMS[,"precursor"]), "_"), "[", 1))
+precursorMZRT <- as.character(MSMS[, "id"])
+precursorMZRT_unique <- unique(precursorMZRT)
+precursorMZ <- unlist(lapply(strsplit(as.character(MSMS[,"id"]), "_"), "[", 1))
 precursorMZ <- as.numeric(precursorMZ)
 precursorMZ_unique <- unique(precursorMZ)
-precursorRT <- unlist(lapply(strsplit(as.character(MSMS[,"precursor"]), "_"), "[", 2))
+precursorRT <- unlist(lapply(strsplit(as.character(MSMS[,"id"]), "_"), "[", 2))
 precursorRT <- as.numeric(precursorRT)
 precursorRT_unique <- unique(precursorRT)
-uniqueMZRTPC <- as.character(unique(MSMS[, "precursor"]))
+uniqueMZRTPC <- as.character(unique(MSMS[, "id"]))
 precursorRT_minute <- precursorRT / 60 - 1 ## minimum is now 0.027 minutes (in the gradient phase)
 gradientMSMS <- numeric(length = length(precursorRT_minute))
 gradientMSMS[which(precursorRT_minute <= 0)] <- 0.9
@@ -222,7 +226,7 @@ MSMS_mod <- cbind(MSMS_mod, pc_group_m = numeric(dim(MSMS)[1]))
 #devWOS <- numeric(length(precursorMZ))
 #devMJ <- numeric(length(precursorMZ))
 
-gradient <- 0.05 ## tolerated deviance in gradient, define greater deviance 
+gradient <- 0.03 ## tolerated deviance in gradient, define greater deviance 
 ## since we use a "combined" peaklist of WOS and MeJA runs
 
 
@@ -237,7 +241,7 @@ for (i in 1:length(precursorMZ)) {
     ind_minMZ <- ind[which.min(abs(precursorMZ[i] - peaklist[ind, "mz"] ))]
     minInPeaklist <- peaklist[ind_minMZ,]
     
-    if (abs(minInPeaklist["mz"] - precursorMZ[i]) <= 0.008) { ## tolerated m/z deviance is 0.008
+    if (abs(minInPeaklist["mz"] - precursorMZ[i]) <= 0.01) { ## tolerated m/z deviance is 0.01
         ## set mapped1 to 1
         MSMS_mod[i, "mapped1WOS"] <- 1
         MSMS_mod[i, "mapped1MJ"] <- 1
@@ -280,8 +284,15 @@ for (i in 1:length(precursorMZ)) {
 ## end of round 1
 
 ## how many features were mapped (round 1)?
-length(unique(MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1),"precursor"])) ## 201 
+length(unique(MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1),"id"])) ## 163
 
+msms <- MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1), c("id","pc_group_m")]
+
+map <- list()
+for (i in 1:length(unique(msms[, 2]))) {
+    uniq <- unique(msms[,2])[i]
+    map[[i]] <- as.character(unique(msms[msms[, 2] == uniq,1]))
+}
 ## round 2: use results from round 1 and define a retention time window 
 ## between already mapped features, check then in this window if other (not yet
 ## mapped) features can be mapped
@@ -296,39 +307,46 @@ for (i in 1:length(precursorMZ)) {
     
     if (MSMS_mod[i,"mapped1WOS"] == 0) {
         
-        ## get feature that has gradient of rank +-3 to calculated one
+        ## get feature that has gradient of rank +-2 to calculated one
         devGradient <- MSMS_mod[i, "gradientMSMS"] - mappedGradients_uni
-        ## upper and lower feature which is +-5
-        devGradient_ind_u <- which( devGradient == sort(devGradient[devGradient > 0])[3] )
-        devGradient_ind_l <- which( devGradient == sort(devGradient[devGradient < 0])[3] )
+        ## upper and lower feature which is +-2
+        devGradient_ind_u <- which( devGradient == sort(devGradient[devGradient >= 0])[3] )
+        devGradient_ind_l <- which( -1 * devGradient == sort(abs(devGradient[devGradient <= 0]))[3] )
         
         ## retrieve respective mapped MSMS feature with lower and higher retention time
         ## that will use as a lower and upper bound for search space
-        lower <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_l]),indmapped), ]
+        lower <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_l]), indmapped), ]
         upper <- MSMS_mod[intersect(which(MSMS_mod[, "gradientMSMS"] ==  mappedGradients_uni[devGradient_ind_u]), indmapped), ]
-        
         ## implement a rule for boundary values
         if (dim(upper)[1] == 0) {
             upper <- lower
-            upper[,"rtWOS"] <- lower[,"rtWOS"] + 10
-            upper[,"rtMJ"] <- lower[,"rtMJ"] + 10
+            upper[,"rtWOS"] <- lower[,"rtWOS"] + 20
+            upper[,"rtMJ"] <- lower[,"rtMJ"] + 20
         }
         if (dim(lower)[1] == 0) {
             lower <- upper
-            lower[,"rtWOS"] <- upper[,"rtWOS"] - 10
-            lower[,"rtMJ"] <- upper[,"rtMJ"] - 10
+            lower[,"rtWOS"] <- upper[,"rtWOS"] - 20
+            lower[,"rtMJ"] <- upper[,"rtMJ"] - 20
         }
-        
-        
-        
-        upperRT <- max(unique(upper[, "rtWOS"]))
-        lowerRT <- min(unique(lower[, "rtWOS"]))
-        
+    
+        lowerRT <- min(lower[, "rtWOS"])
+        upperRT <- max(upper[, "rtWOS"])
+    
+        ## it can happen that features with different retention times were selected as 
+        ## "neighbours" that were mapped to the same feature in round 1,
+        ## the retention time will be identical, therefore: 
         ## implement a rule that there is a certain range of at least 20s to look into
         ## when the range between upperRT and lowerRT is low
-        if (upperRT - lowerRT < 20) {
-            upperRT <- upperRT + 10
-            lowerRT <- lowerRT - 10
+        if (upperRT - lowerRT < 40) {
+            upperRT <- max(upperRT, lowerRT) + 40
+            lowerRT <- min(lowerRT, upperRT) - 40
+        }
+        
+        if (lowerRT >= upperRT) {
+            print(i)
+            lower <- lowerRT 
+            lowerRT <- upperRT 
+            upperRT <- lower
         }
         
         ind_tr <- intersect(which(peaklist[, "rt"] <= upperRT), which(peaklist[, "rt"] >= lowerRT))
@@ -338,7 +356,7 @@ for (i in 1:length(precursorMZ)) {
         ind_mapped <- which.min(abs(peaklist_tr[, "mz"] - precursorMZ[i]))
         mapped <- peaklist_tr[ind_mapped, ]
         
-        if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.008) { ## use deviance of 0.008
+        if (abs(mapped[, "mz"] - precursorMZ[i]) <= 0.01) { ## use deviance of 0.008
             
             ind_minMZ <- ind_tr[ind_mapped]
             
@@ -383,30 +401,160 @@ for (i in 1:length(precursorMZ)) {
 }
 
 ## how many features were mapped (round 2)?
-length(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"precursor"])) ## 156
+length(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"id"])) ## 103
+
+## distribution along the chromatogramm for the mapped features
+hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1),"id"])), "_"), "[", 2))), 
+     ylim = c(0,120), main = "after mapping (round 1)", xlab = "retention time (s)")
+hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"id"])), "_"), "[", 2))), 
+     ylim = c(0,120), main = "after mapping (round 2)", xlab = "retention time (s)")
+
+hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[,"id"])), "_"), "[", 2))), 
+     ylim = c(0,120), main = "after mapping", xlab = "retention time (s)")
+## distribution along the chromatogramm before mapping
+hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS[,"id"])), "_"), "[", 2))), 
+     ylim = c(0,120), main = "before mapping", xlab = "retention time (s)")
+
+## round 3: map the features with intensity of 100 within the given gradient
+head(MSMS_mod)
+MSMS_mod <- cbind(MSMS_mod, mapped3MJ = numeric(dim(MSMS_mod)[1]))
+MSMS_mod <- cbind(MSMS_mod, mapped3WOS = numeric(dim(MSMS_mod)[1]))
+MSMS_mod <- cbind(MSMS_mod, pc_group_m3 = numeric(dim(MSMS_mod)[1]))
+
+for (i in 1:length(precursorMZRT_unique)) {
+    prec_group <- MSMS_mod[which(precursorMZRT_unique[i] == as.character(MSMS_mod[, "id"])),]
+    ind_max <- which(prec_group[, "intensity"] == 100)[1]
+    
+    ## shrink space of possible mapped features by gradient deviance
+    ## use more severe gradient
+    ind <- which(abs(prec_group[ind_max, "gradientMSMS"] - gradientProfiling) <= gradient)
+    ## get feature with minimum deviance to mz
+    ind_minMZ <- ind[which.min(abs(prec_group[ind_max, "mz"] - peaklist[ind, "mz"] ))]
+    minInPeaklist <- peaklist[ind_minMZ,]
+    
+    if (abs(minInPeaklist["mz"] - prec_group[ind_max, "mz"]) <= 0.01) {
+        indMSMS <- which(MSMS_mod[, "id"] == precursorMZRT_unique[i])
+        
+        if (!(all(as.numeric(as.character(MSMS_mod[indMSMS, "mapped1WOS"])) == 1) | 
+            all(as.numeric(as.character(MSMS_mod[indMSMS, "mapped2WOS"])) == 1))) {
+                ## write gradient of profiling to column gradientWOS
+                MSMS_mod[indMSMS, "gradientWOS"] <- MSMS_mod[indMSMS, "gradientMJ"] <- gradientProfiling[ind_minMZ]
+            
+                ## write mz of profiling to column mzWOS and mzMJ
+                MSMS_mod[indMSMS, "mzWOS"] <- MSMS_mod[indMSMS, "mzMJ"] <- peaklist[ind_minMZ, "mz"]
+                ## write retention time of profiling to column rtWOS and rtMJ
+                MSMS_mod[indMSMS, "rtWOS"] <- MSMS_mod[indMSMS, "rtMJ"] <- peaklist[ind_minMZ, "rt"]
+            
+                ## write numbers of biological replicates where feature is present: C
+                MSMS_mod[indMSMS, "att0"] <- peaklist[ind_minMZ, "att0"]
+                MSMS_mod[indMSMS, "obt0"] <- peaklist[ind_minMZ, "obt0"]
+                MSMS_mod[indMSMS, "clev0"] <- peaklist[ind_minMZ, "clev0"]
+                MSMS_mod[indMSMS, "quad0"] <- peaklist[ind_minMZ, "quad0"]
+                MSMS_mod[indMSMS, "x10270"] <- peaklist[ind_minMZ, "x10270"]
+                MSMS_mod[indMSMS, "x571260"] <- peaklist[ind_minMZ, "x570"]
+            
+                ## write numbers of biological replicates where feature is present: WOS
+                MSMS_mod[indMSMS, "att72WOS"] <- peaklist[ind_minMZ, "att72WOS"]
+                MSMS_mod[indMSMS, "obt72WOS"] <- peaklist[ind_minMZ, "obt72WOS"]
+                MSMS_mod[indMSMS, "clev72WOS"] <- peaklist[ind_minMZ, "clev72WOS"]
+                MSMS_mod[indMSMS, "quad72WOS"] <- peaklist[ind_minMZ, "quad72WOS"]
+                MSMS_mod[indMSMS, "x102772WOS"] <- peaklist[ind_minMZ, "x1072WOS"]
+                MSMS_mod[indMSMS, "x5712672WOS"] <- peaklist[ind_minMZ, "x5772WOS"]
+            
+                ## write numbers of biological replicates where feature is present: MJ
+                MSMS_mod[indMSMS, "att72MJ"] <- peaklist[ind_minMZ, "att72MJ"]
+                MSMS_mod[indMSMS, "obt72MJ"] <- peaklist[ind_minMZ, "obt72MJ"]
+                MSMS_mod[indMSMS, "clev72MJ"] <- peaklist[ind_minMZ, "clev72MJ"]
+                MSMS_mod[indMSMS, "quad72MJ"] <- peaklist[ind_minMZ, "quad72MJ"]
+                MSMS_mod[indMSMS, "x102772MJ"] <- peaklist[ind_minMZ, "x1072MJ"]
+                MSMS_mod[indMSMS, "x5712672MJ"] <- peaklist[ind_minMZ, "x5772MJ"]
+            
+        
+        }
+        ## write number of pc_group and 1 to mapped3 
+        MSMS_mod[indMSMS, "mapped3WOS"] <- MSMS_mod[indMSMS, "mapped3MJ"] <- 1
+        MSMS_mod[indMSMS, "pc_group_m3"] <- peaklist[ind_minMZ, "pcgroup"]
+        
+    }
+}
+
+# ## round 4: map the features with the second highest intensity values within the given gradient
+# head(MSMS_mod)
+# MSMS_mod <- cbind(MSMS_mod, mapped4MJ = numeric(dim(MSMS_mod)[1]))
+# MSMS_mod <- cbind(MSMS_mod, mapped4WOS = numeric(dim(MSMS_mod)[1]))
+# MSMS_mod <- cbind(MSMS_mod, pc_group_m4 = numeric(dim(MSMS_mod)[1]))
+# 
+# for (i in 1:length(precursorMZRT_unique)) {
+#     prec_group <- MSMS_mod[which(precursorMZRT_unique[i] == as.character(MSMS_mod[, "id"])),]
+#     
+#     if (length(prec_group[, "intensity"]) > 1) { ## only if length is 2 or higher
+#     ind_max <- which(prec_group[, "intensity"] == sort(prec_group[, "intensity"], decreasing = TRUE)[2] )[1]
+#     
+#     ## shrink space of possible mapped features by gradient deviance
+#     ## use more severe gradient
+#     ind <- which(abs(prec_group[ind_max, "gradientMSMS"] - gradientProfiling) <= gradient)
+#     ## get feature with minimum deviance to mz
+#     ind_minMZ <- ind[which.min(abs(prec_group[ind_max, "mz"] - peaklist[ind, "mz"] ))]
+#     minInPeaklist <- peaklist[ind_minMZ,]
+#     
+#     if (abs(minInPeaklist["mz"] - prec_group[ind_max, "mz"]) <= 0.01) {
+#         indMSMS <- which(MSMS_mod[, "id"] == precursorMZRT_unique[i])
+#         
+#         if (!(all(as.numeric(as.character(MSMS_mod[indMSMS, "mapped1WOS"])) == 1) | 
+#             all(as.numeric(as.character(MSMS_mod[indMSMS, "mapped2WOS"])) == 1) | 
+#             all(as.numeric(as.character(MSMS_mod[indMSMS, "mapped3WOS"])) == 1))) {
+#                 ## write gradient of profiling to column gradientWOS
+#                 MSMS_mod[indMSMS, "gradientWOS"] <- MSMS_mod[indMSMS, "gradientMJ"] <- gradientProfiling[ind_minMZ]
+#             
+#                 ## write mz of profiling to column mzWOS and mzMJ
+#                 MSMS_mod[indMSMS, "mzWOS"] <- MSMS_mod[indMSMS, "mzMJ"] <- peaklist[ind_minMZ, "mz"]
+#                 ## write retention time of profiling to column rtWOS and rtMJ
+#                 MSMS_mod[indMSMS, "rtWOS"] <- MSMS_mod[indMSMS, "rtMJ"] <- peaklist[ind_minMZ, "rt"]
+#             
+#                 ## write numbers of biological replicates where feature is present: C
+#                 MSMS_mod[indMSMS, "att0"] <- peaklist[ind_minMZ, "att0"]
+#                 MSMS_mod[indMSMS, "obt0"] <- peaklist[ind_minMZ, "obt0"]
+#                 MSMS_mod[indMSMS, "clev0"] <- peaklist[ind_minMZ, "clev0"]
+#                 MSMS_mod[indMSMS, "quad0"] <- peaklist[ind_minMZ, "quad0"]
+#                 MSMS_mod[indMSMS, "x10270"] <- peaklist[ind_minMZ, "x10270"]
+#                 MSMS_mod[indMSMS, "x571260"] <- peaklist[ind_minMZ, "x570"]
+#             
+#                 ## write numbers of biological replicates where feature is present: WOS
+#                 MSMS_mod[indMSMS, "att72WOS"] <- peaklist[ind_minMZ, "att72WOS"]
+#                 MSMS_mod[indMSMS, "obt72WOS"] <- peaklist[ind_minMZ, "obt72WOS"]
+#                 MSMS_mod[indMSMS, "clev72WOS"] <- peaklist[ind_minMZ, "clev72WOS"]
+#                 MSMS_mod[indMSMS, "quad72WOS"] <- peaklist[ind_minMZ, "quad72WOS"]
+#                 MSMS_mod[indMSMS, "x102772WOS"] <- peaklist[ind_minMZ, "x1072WOS"]
+#                 MSMS_mod[indMSMS, "x5712672WOS"] <- peaklist[ind_minMZ, "x5772WOS"]
+#             
+#                 ## write numbers of biological replicates where feature is present: MJ
+#                 MSMS_mod[indMSMS, "att72MJ"] <- peaklist[ind_minMZ, "att72MJ"]
+#                 MSMS_mod[indMSMS, "obt72MJ"] <- peaklist[ind_minMZ, "obt72MJ"]
+#                 MSMS_mod[indMSMS, "clev72MJ"] <- peaklist[ind_minMZ, "clev72MJ"]
+#                 MSMS_mod[indMSMS, "quad72MJ"] <- peaklist[ind_minMZ, "quad72MJ"]
+#                 MSMS_mod[indMSMS, "x102772MJ"] <- peaklist[ind_minMZ, "x1072MJ"]
+#                 MSMS_mod[indMSMS, "x5712672MJ"] <- peaklist[ind_minMZ, "x5772MJ"]
+#             
+#         }
+#         
+#             ## write number of pc_group and 1 to mapped4
+#             MSMS_mod[indMSMS, "mapped4WOS"] <- MSMS_mod[indMSMS, "mapped4MJ"] <- 1
+#             MSMS_mod[indMSMS, "pc_group_m4"] <- peaklist[ind_minMZ, "pcgroup"]
+#         
+#     }
+#     }
+# }
 
 
 ## truncate MSMS_mod: remove entries which have sum of 0 in the mentioned columns
 ## i.e. remove the ones that could not be mapped
-MSMS_mod <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("mapped1WOS", "mapped1MJ", "mapped2WOS", "mapped2MJ")]) - 1, 1, sum) > 0,]
+MSMS_mod <- MSMS_mod[apply(data.matrix(MSMS_mod[, c("pc_group_m", "pc_group_m3")]), 1, sum) > 0, ] ## pc_group_m4
 
 ## how many features were mapped (round 1, round 2)?
-length(unique(MSMS_mod[ ,"precursor"])) ## 338
+length(unique(MSMS_mod[ ,"id"])) ## 304
 ## percentage: 
-length(unique(MSMS_mod[ ,"precursor"])) / length(unique(MSMS[, "precursor"]))*100 ## 58.78%
+length(unique(MSMS_mod[ ,"id"])) / length(unique(MSMS[, "id"]))*100 ## 52.86%
 
-
-## distribution along the chromatogramm for the mapped features
-hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[which(MSMS_mod[, "mapped1WOS"] == 1),"precursor"])), "_"), "[", 2))), 
-     ylim = c(0,120), main = "after mapping (round 1)", xlab = "retention time (s)")
-hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[which(MSMS_mod[, "mapped2WOS"] == 1),"precursor"])), "_"), "[", 2))), 
-     ylim = c(0,120), main = "after mapping (round 2)", xlab = "retention time (s)")
-
-hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS_mod[,"precursor"])), "_"), "[", 2))), 
-     ylim = c(0,120), main = "after mapping", xlab = "retention time (s)")
-## distribution along the chromatogramm before mapping
-hist(as.numeric(unlist(lapply(strsplit(as.character(unique(MSMS[,"precursor"])), "_"), "[", 2))), 
-     ylim = c(0,120), main = "before mapping", xlab = "retention time (s)")
 
 ## change entries of biological replicates to binary values:
 ## set the entries with less than 6 replicates to 0, 
@@ -424,13 +572,17 @@ entries72[entries72 >= 3] <- 1
 MSMS_mod[,which(colnames(MSMS_mod) == "att0"):which(colnames(MSMS_mod) == "x571260")] <- entriesC
 MSMS_mod[,which(colnames(MSMS_mod) == "att72WOS"):which(colnames(MSMS_mod) == "x5712672MJ")] <- entries72
 
-## 
-MSMS_mod <- cbind(MSMS_mod, pc_group = unlist(lapply(strsplit(as.character(MSMS_mod[, "precursor"]), "_"), "[", 3)))
+## write pc group of MSMS precursor group (id) in column pcgroup
+MSMS_mod <- cbind(MSMS_mod, pc_group = unlist(lapply(strsplit(as.character(MSMS_mod[, "id"]), "_"), "[", 3)))
+
+MSMS_mod[match(unique(MSMS_mod[, "id"]), MSMS_mod[, "id"]), c("pc_group_m", "pc_group_m3", "pc_group")]
+
 @
 
 <<removeRedundantFeatures>>=
 ###########################################################
-mappedPCGROUPS <- as.numeric(as.character(unique(MSMS_mod[, "pc_group_m"])))
+mappedPCGROUPS <- as.numeric(unique(c(MSMS_mod[, "pc_group_m"], MSMS_mod[, "pc_group_m3"])))
+mappedPCGROUPS <- mappedPCGROUPS[-which(mappedPCGROUPS == 0)]
 mappedPCGROUPS_s <- sort(mappedPCGROUPS)
 
 mapping_l <- setNames(as.list(rep(NA, length(mappedPCGROUPS_s))), mappedPCGROUPS_s)
@@ -438,8 +590,58 @@ mapping_l <- setNames(as.list(rep(NA, length(mappedPCGROUPS_s))), mappedPCGROUPS
 names(mapping_l)
 
 for (i in names(mapping_l)) {
-    mapping_l[[i]] <- as.character(unique(MSMS_mod[which(MSMS_mod[, "pc_group_m"] == i), "precursor"]))
+    mapping_l[[i]] <- as.character(unique(MSMS_mod[which(MSMS_mod[, c("pc_group_m", "pc_group_m3")] == i, arr.ind = TRUE)[, "row"], "id"])) ## pc_group_m4
 }
+
+## reduce objects in mapping_l: calculate similarity and remove those objects which are highly
+## similar to other objects, but have a lower precursor mz value
+for (i in 1:length(mapping_l)) {
+    print(i)
+    entry <- mapping_l[[i]]
+    ## maybe good example for publ: a_945.4703568/1083.689968 , a_989.506952/1082.036944 in pcgroup 5639
+
+    if (length(entry) > 1 ) {
+    msp <- convert2MSP(MSMS_mod[MSMS_mod[, "id"] %in% entry,], splitPattern = "_", rt = TRUE, splitIndRT = 2)
+    binnedMSP <- binning(msp = msp, tol = 0.1, verbose = FALSE)
+    simMat <- createSimilarityMatrix(binnedMSP, m = 0, n = 2)
+    diag(simMat) <- 0
+    entry_nopcgroup <- lapply(strsplit(entry, "_"), function(x) paste(x[1], x[2], sep = "_"))
+
+    while(max(simMat) >= 0.1) {
+        max_combine <- which(simMat == max(simMat), arr.ind = TRUE)
+        max_combine_rn <- rownames(max_combine)
+        ## get the element with the higher m/z value
+        max_combine_rn_cut <- unlist(lapply(strsplit(max_combine_rn, "_"), "[", 2))
+        max_combine_rn_cut <- gsub("/", "_", max_combine_rn_cut) ## replace / by _
+        max_combine_rn_ind <- which.max(unlist(lapply(strsplit(max_combine_rn_cut, split = "_"), "[", 1)))
+
+        ## remove feature and write to entry
+        entry <- entry[-which(entry_nopcgroup == max_combine_rn_cut[-max_combine_rn_ind])]
+        entry_nopcgroup <- lapply(strsplit(entry, "_"), function(x) paste(x[1], x[2], sep = "_"))
+        
+        msp <- convert2MSP(MSMS_mod[MSMS_mod[, "id"] %in% entry,], splitPattern = "_", rt = TRUE, splitIndRT = 2)
+        binnedMSP <- binning(msp = msp, tol = 0.1, verbose = FALSE)
+        simMat <- createSimilarityMatrix(binnedMSP, m = 0, n = 2)
+        diag(simMat) <- 0
+    }
+    mapping_l[[i]] <- entry
+    }
+
+
+}
+## 
+peaklist_mapped <- matrix(ncol = dim(peaklist)[2], nrow = 0); colnames(peaklist_mapped) <- colnames(peaklist)
+for (i in names(mapping_l)) {
+    newentry <- peaklist[which(peaklist[, "pcgroup"] == i),]
+    mapped_feat_length <- length(mapping_l[[i]])
+    newentry_rep <- apply(newentry, 2, rep, mapped_feat_length)
+    ## modify column pcgroup: count from 1:mapped_feat_length and paste to pcgroup
+    if (mapped_feat_length > 1) {
+        newentry_rep[, "pcgroup"] <- unlist(
+            lapply(1:mapped_feat_length, function(x) paste(newentry[, "pcgroup"], x, sep = "_")))}
+    peaklist_mapped <- rbind(peaklist_mapped, newentry_rep)
+}
+
 
 
 
@@ -449,14 +651,14 @@ for (i in names(mapping_l)) {
 ## collapse MSMS_mod into one spectrum when they have the same pcgroup
 pcgroups <- as.numeric(as.character(MSMS_mod[, "pc_group"]))
 pcgroups_unique <- unique(pcgroups)
-indNewFeat <- match(unique(as.character(MSMS_mod[, "precursor"])), as.character(MSMS_mod[,"precursor"]))
+indNewFeat <- match(unique(as.character(MSMS_mod[, "id"])), as.character(MSMS_mod[,"id"]))
 
 pcgroups <- as.character(MSMS_mod[indNewFeat, "pc_group"])
 for (i in unique(pcgroups)) {
     indI <- which(pcgroups == i)
     if (length(indI) > 1) {
         indI <- which(MSMS_mod[, "pc_group"] == unique(pcgroups[indI]))
-        precMZ <- lapply(strsplit(as.character(MSMS_mod[indI, "precursor"]), "_"), "[", 1)
+        precMZ <- lapply(strsplit(as.character(MSMS_mod[indI, "id"]), "_"), "[", 1)
         precMZ <- as.numeric(unlist(precMZ))
         ## take always the one with the highest precursor value and 
         ## set the other to 0
@@ -495,10 +697,10 @@ MSMS_mod <- removeDoubleMappings(MSMS_mod)
 
 <<barplot>>=
 ## how many metabolites are found in each species?
-uniquePrecursor <- unique(MSMS_mod[, "precursor"])
+uniquePrecursor <- unique(MSMS_mod[, "id"])
 
 ## get first row entries with unique precursor
-indsMSMS <- match(uniquePrecursor, MSMS_mod[, "precursor"])
+indsMSMS <- match(uniquePrecursor, MSMS_mod[, "id"])
 
 ## how many metabolites are found in each species?
 apply(data.matrix(MSMS_mod[indsMSMS, c("att0", "obt0","clev0","quad0","x10270","x571260")]), 2, sum)
@@ -793,9 +995,9 @@ inducibility <- function(peaklist2, MSMS, ind0 = 1:5, ind72 = 6:10, cols = 20:79
 truncatePeaklist <- function(peaklist, MSMS_mod, mode = c("WOS", "MJ")) {
     peaklistNew <- NULL
     peaklistPC <- as.numeric(peaklist[, "pcgroup"])
-    uniquePrecursor <- as.character(unique(MSMS_mod[, "precursor"]))
+    uniquePrecursor <- as.character(unique(MSMS_mod[, "id"]))
     for (i in 1:length(uniquePrecursor)) {
-        inds <- which(MSMS_mod[, "precursor"] == as.character(uniquePrecursor[i]))
+        inds <- which(MSMS_mod[, "id"] == as.character(uniquePrecursor[i]))
     
         if (mode == "WOS") {
             mapped1 <- "mapped1WOS"
