@@ -1,6 +1,11 @@
 <<prepare>>=
+library(xcms)
+library(CAMERA)
 library (MetCirc)
 setwd("/home/thomas/Documents/University/Master/MScArbeit/MSMS/")
+
+## define colours for N. attenuata, N. obt, Nclev, Nquad, Nxobt1027, Nxobt57126
+colours <- c("red", "blue", "orange","seagreen4", "plum2", "slateblue")
 
 ## xcms parameter settings as described in Patty et al. 2012, Nature Protocols
 ##xsetMSMS <- xcmsSet(file = "CDFs/MS", method="centWave", ppm=30, snthresh=10, peakwidth=c(5,20))
@@ -55,18 +60,18 @@ peaklistMSMS2 <- getPeaklist(anFAMSMS2)
 ## re-create xcms combined peaklist for WOS and MeJA (shell)
 setwd("/home/thomas/Documents/University/Master/MScArbeit/Metabolic_profiling/WOS_MeJA_0h_72h/")
 load("./metabolicProfiling.RData")
-##xset <- xcmsSet(method="centWave", ppm=30, snthresh=10, peakwidth=c(5,20), BPPARAM = MulticoreParam(workers = 6))
+##xset <- xcmsSet(method="centWave", ppm=30, snthresh=10, peakwidth=c(5,20), BPPARAM = MulticoreParam(workers = 2))
 ##classes <- c(rep("att0", 5),  rep("att72WOS", 5),
 ##    rep("obt0", 5), rep("obt72WOS", 5),
 ##    rep("clev0", 5),  rep("clev72WOS", 5),
 ##    rep("quad0", 5), rep("quad72WOS", 5),
-##    rep("x10270", 5),  rep("x1072WOS", 5),
+##    rep("x10270", 5),  rep("x102772WOS", 5),
 ##    rep("x570", 5), rep("x5772WOS", 5),
 ##    rep("att0", 5),  rep("att72MJ", 5),
 ##    rep("obt0", 5), rep("obt72MJ", 5),
 ##    rep("clev0", 5),  rep("clev72MJ", 5),
 ##    rep("quad0", 5), rep("quad72MJ", 5),
-##    rep("x10270", 5),  rep("x1072MJ", 5),
+##    rep("x10270", 5),  rep("x102772MJ", 5),
 ##    rep("x570", 5), rep("x5772MJ", 5))
 ##sampclass(xset) <- classes
 ##xset2 <- group(xset, method="density", minfrac=0.5, minsamp=2, bw=2, mzwid=0.025) ## mzwid = 0.01
@@ -82,24 +87,24 @@ load("./CAMERA_complete.RData")
 ##anI <- findIsotopes(anF, mzabs=0.01)
 ##anIC <- groupCorr(anI, cor_eic_th=0.75, graphMethod = "lpc")
 ##anFA <- findAdducts(anIC, polarity="positive")
-peaklist <- getPeaklist(anFA)
-# ## get colnames of samples (min and max ind)
-colMin <- which(colnames(peaklist) == "X001_BA4_01_28001")
-colMax <- which(colnames(peaklist) == "X180_RD2_01_28200")
-cols <- colMin:colMax
-peaklistConc <- peaklist
-peaklistConc[, cols] <- apply(peaklist[, cols], 2, FUN = function(x) (x / quantile(x, 0.75)))
-peaklist[, cols] <- apply(peaklist[, cols], 2, FUN = function(x) (x / quantile(x, 0.75) + 1))
+#peaklist <- getPeaklist(anFA)
+## get colnames of samples (min and max ind)
+#colMin <- which(colnames(peaklist) == "X001_BA4_01_28001")
+#colMax <- which(colnames(peaklist) == "X180_RD2_01_28200")
+#cols <- colMin:colMax
+#peaklistConc <- peaklist
+#peaklistConc[, cols] <- apply(peaklist[, cols], 2, FUN = function(x) (x / quantile(x, 0.75)))
+#peaklist[, cols] <- apply(peaklist[, cols], 2, FUN = function(x) (x / quantile(x, 0.75) + 1))
 # ## without peak filling (to get number of compounds)
 # an2 <- xsAnnotate(xset4)
 # anF2 <- groupFWHM(an2, perfwhm = 0.6)
 # anI2 <- findIsotopes(anF2, mzabs = 0.01)
 # anIC2 <- groupCorr(anI2, cor_eic_th = 0.75, graphMethod = "lpc")
 # anFA2 <- findAdducts(anIC2, polarity = "positive")
-peaklist2 <- getPeaklist(anFA2)
-peaklist2[, cols] <- apply(peaklist2[, cols], 2, FUN = function(x) (x / quantile(x, 0.75, na.rm = TRUE) + 1))
+#peaklist2 <- getPeaklist(anFA2)
+#peaklist2[, cols] <- apply(peaklist2[, cols], 2, FUN = function(x) (x / quantile(x, 0.75, na.rm = TRUE) + 1))
 ## write pcgroups of peaklist to peaklist2
-peaklist2[, "pcgroup"] <- peaklist[, "pcgroup"]
+#peaklist2[, "pcgroup"] <- peaklist[, "pcgroup"]
 # save(an, anF, anI, anIC, anFA, peaklist, an2, anF2, anI2, anIC2, anFA2, peaklist2, file = "./CAMERA_complete.RData")
 
 @
@@ -107,6 +112,7 @@ peaklist2[, "pcgroup"] <- peaklist[, "pcgroup"]
 
 <<MSMS>>=
 MSMS <- read.csv("../../MSMS/idmsms_3_3_0.8_minCor_rmv50.csv")
+MSMS_raw <- MSMS
 MSMS <- MSMS[,c(2,3,4,8)]
 colnames(MSMS)[which(colnames(MSMS) == "precursor")] <- "id"
 
@@ -266,7 +272,7 @@ for (i in 1:length(precursorMZ)) {
         MSMS_mod[i, "obt72WOS"] <- peaklist[ind_minMZ, "obt72WOS"]
         MSMS_mod[i, "clev72WOS"] <- peaklist[ind_minMZ, "clev72WOS"]
         MSMS_mod[i, "quad72WOS"] <- peaklist[ind_minMZ, "quad72WOS"]
-        MSMS_mod[i, "x102772WOS"] <- peaklist[ind_minMZ, "x1072WOS"]
+        MSMS_mod[i, "x102772WOS"] <- peaklist[ind_minMZ, "x102772WOS"]
         MSMS_mod[i, "x5712672WOS"] <- peaklist[ind_minMZ, "x5772WOS"]
         
         ## write numbers of biological replicates where feature is present: MJ
@@ -274,7 +280,7 @@ for (i in 1:length(precursorMZ)) {
         MSMS_mod[i, "obt72MJ"] <- peaklist[ind_minMZ, "obt72MJ"]
         MSMS_mod[i, "clev72MJ"] <- peaklist[ind_minMZ, "clev72MJ"]
         MSMS_mod[i, "quad72MJ"] <- peaklist[ind_minMZ, "quad72MJ"]
-        MSMS_mod[i, "x102772MJ"] <- peaklist[ind_minMZ, "x1072MJ"]
+        MSMS_mod[i, "x102772MJ"] <- peaklist[ind_minMZ, "x102772MJ"]
         MSMS_mod[i, "x5712672MJ"] <- peaklist[ind_minMZ, "x5772MJ"]
         
         ## write mapped pcgroup of peaklist
@@ -383,7 +389,7 @@ for (i in 1:length(precursorMZ)) {
             MSMS_mod[i, "obt72WOS"] <- peaklist[ind_minMZ, "obt72WOS"]
             MSMS_mod[i, "clev72WOS"] <- peaklist[ind_minMZ, "clev72WOS"]
             MSMS_mod[i, "quad72WOS"] <- peaklist[ind_minMZ, "quad72WOS"]
-            MSMS_mod[i, "x102772WOS"] <- peaklist[ind_minMZ, "x1072WOS"]
+            MSMS_mod[i, "x102772WOS"] <- peaklist[ind_minMZ, "x102772WOS"]
             MSMS_mod[i, "x5712672WOS"] <- peaklist[ind_minMZ, "x5772WOS"]
             
             ## write numbers of biological replicates where feature is present: MJ
@@ -391,7 +397,7 @@ for (i in 1:length(precursorMZ)) {
             MSMS_mod[i, "obt72MJ"] <- peaklist[ind_minMZ, "obt72MJ"]
             MSMS_mod[i, "clev72MJ"] <- peaklist[ind_minMZ, "clev72MJ"]
             MSMS_mod[i, "quad72MJ"] <- peaklist[ind_minMZ, "quad72MJ"]
-            MSMS_mod[i, "x102772MJ"] <- peaklist[ind_minMZ, "x1072MJ"]
+            MSMS_mod[i, "x102772MJ"] <- peaklist[ind_minMZ, "x102772MJ"]
             MSMS_mod[i, "x5712672MJ"] <- peaklist[ind_minMZ, "x5772MJ"]
             
             ## write mapped pcgroup of peaklist
@@ -458,7 +464,7 @@ for (i in 1:length(precursorMZRT_unique)) {
                 MSMS_mod[indMSMS, "obt72WOS"] <- peaklist[ind_minMZ, "obt72WOS"]
                 MSMS_mod[indMSMS, "clev72WOS"] <- peaklist[ind_minMZ, "clev72WOS"]
                 MSMS_mod[indMSMS, "quad72WOS"] <- peaklist[ind_minMZ, "quad72WOS"]
-                MSMS_mod[indMSMS, "x102772WOS"] <- peaklist[ind_minMZ, "x1072WOS"]
+                MSMS_mod[indMSMS, "x102772WOS"] <- peaklist[ind_minMZ, "x102772WOS"]
                 MSMS_mod[indMSMS, "x5712672WOS"] <- peaklist[ind_minMZ, "x5772WOS"]
             
                 ## write numbers of biological replicates where feature is present: MJ
@@ -466,7 +472,7 @@ for (i in 1:length(precursorMZRT_unique)) {
                 MSMS_mod[indMSMS, "obt72MJ"] <- peaklist[ind_minMZ, "obt72MJ"]
                 MSMS_mod[indMSMS, "clev72MJ"] <- peaklist[ind_minMZ, "clev72MJ"]
                 MSMS_mod[indMSMS, "quad72MJ"] <- peaklist[ind_minMZ, "quad72MJ"]
-                MSMS_mod[indMSMS, "x102772MJ"] <- peaklist[ind_minMZ, "x1072MJ"]
+                MSMS_mod[indMSMS, "x102772MJ"] <- peaklist[ind_minMZ, "x102772MJ"]
                 MSMS_mod[indMSMS, "x5712672MJ"] <- peaklist[ind_minMZ, "x5772MJ"]
             
         
@@ -607,7 +613,7 @@ for (i in 1:length(mapping_l)) {
     diag(simMat) <- 0
     entry_nopcgroup <- lapply(strsplit(entry, "_"), function(x) paste(x[1], x[2], sep = "_"))
 
-    while(max(simMat) >= 0.1) {
+    while(max(simMat) >= 0.1 & length(msp) > 1) {
         max_combine <- which(simMat == max(simMat), arr.ind = TRUE)
         max_combine_rn <- rownames(max_combine)
         ## get the element with the higher m/z value
@@ -621,15 +627,15 @@ for (i in 1:length(mapping_l)) {
         
         msp <- convert2MSP(MSMS_mod[MSMS_mod[, "id"] %in% entry,], splitPattern = "_", rt = TRUE, splitIndRT = 2)
         binnedMSP <- binning(msp = msp, tol = 0.1, verbose = FALSE)
-        simMat <- createSimilarityMatrix(binnedMSP, m = 0, n = 2)
-        diag(simMat) <- 0
+        if (length(msp) > 1) {
+            simMat <- createSimilarityMatrix(binnedMSP, m = 0, n = 2)
+            diag(simMat) <- 0
+        }
     }
     mapping_l[[i]] <- entry
     }
-
-
 }
-## 
+## write to new peaklist: peaklist_mapped
 peaklist_mapped <- matrix(ncol = dim(peaklist)[2], nrow = 0); colnames(peaklist_mapped) <- colnames(peaklist)
 for (i in names(mapping_l)) {
     newentry <- peaklist[which(peaklist[, "pcgroup"] == i),]
@@ -642,56 +648,72 @@ for (i in names(mapping_l)) {
     peaklist_mapped <- rbind(peaklist_mapped, newentry_rep)
 }
 
-
-
-
-## to check with MeJA and WOS
-
-## remove reduntant features:
-## collapse MSMS_mod into one spectrum when they have the same pcgroup
-pcgroups <- as.numeric(as.character(MSMS_mod[, "pc_group"]))
-pcgroups_unique <- unique(pcgroups)
-indNewFeat <- match(unique(as.character(MSMS_mod[, "id"])), as.character(MSMS_mod[,"id"]))
-
-pcgroups <- as.character(MSMS_mod[indNewFeat, "pc_group"])
-for (i in unique(pcgroups)) {
-    indI <- which(pcgroups == i)
-    if (length(indI) > 1) {
-        indI <- which(MSMS_mod[, "pc_group"] == unique(pcgroups[indI]))
-        precMZ <- lapply(strsplit(as.character(MSMS_mod[indI, "id"]), "_"), "[", 1)
-        precMZ <- as.numeric(unlist(precMZ))
-        ## take always the one with the highest precursor value and 
-        ## set the other to 0
-        mappedCol <- c("mapped1WOS", "mapped1MJ", "mapped2WOS", "mapped2MJ")
-        MSMS_mod[indI[which(precMZ != max(precMZ))], mappedCol] <- rep(0, 4)
-    }
+peaklist_mapped2 <- matrix(ncol = dim(peaklist2)[2], nrow = 0); colnames(peaklist_mapped2) <- colnames(peaklist2)
+for (i in names(mapping_l)) {
+    newentry <- peaklist2[which(peaklist2[, "pcgroup"] == i),]
+    mapped_feat_length <- length(mapping_l[[i]])
+    newentry_rep <- apply(newentry, 2, rep, mapped_feat_length)
+    ## modify column pcgroup: count from 1:mapped_feat_length and paste to pcgroup
+    if (mapped_feat_length > 1) {
+        newentry_rep[, "pcgroup"] <- unlist(
+            lapply(1:mapped_feat_length, function(x) paste(newentry[, "pcgroup"], x, sep = "_")))}
+    peaklist_mapped2 <- rbind(peaklist_mapped2, newentry_rep)
 }
 
-MSMS_mod <- MSMS_mod[apply(cbind(MSMS_mod[,"mapped1WOS"], MSMS_mod[, "mapped2WOS"]) - 1, 1, sum) == 1,]
 
 
-## after this step, there are still features that were double mapped, i.e. that
-## have the same mapped mz and rt values, remove the ones which have higher
-## pc group
-removeDoubleMappings <- function(MSMS) {
-    MSMSmzrt <- paste(MSMS[, "mzWOS"], MSMS[, "rtWOS"])
-    dupMSMSmzrt <- duplicated(MSMSmzrt)
-    MSMS_dup <- MSMS
-    for (i in 1:length(MSMSmzrt)) {
-        if (dupMSMSmzrt[i]) {
-            ind <- which(MSMSmzrt == MSMSmzrt[i])
-            pcgroups <- as.numeric(as.character(MSMS[ind, "pc_group"]))
-            if (max(pcgroups) != min(pcgroups)) {
-                MSMS_dup[ind[-which(pcgroups == min(pcgroups))],] <- rep(NA, 34)
-            }
-        }
-    }
-    narows <- apply(MSMS_dup, 1, function(x){any(is.na(x))})
-    MSMS_dup <- MSMS_dup[!narows,]
-    return(MSMS_dup)
-}
-MSMS_mod <- removeDoubleMappings(MSMS_mod)
-####################################################################
+MSMS_mod[which(MSMS_mod[, "att0"] == 0 & MSMS_mod[, "obt0"] == 0 & MSMS_mod[, "att72WOS"] == 0 & MSMS_mod[, "obt72WOS"] == 0 & MSMS_mod[, "att72MJ"] == 0 & MSMS_mod[, "obt72MJ"] == 0 ), c("mz", "rt", "intensity", "id", "att0", "obt0", "clev0", "quad0", "x10270", "x571260", "att72WOS", 
+         "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS", "att72MJ", "obt72MJ", "clev72MJ",
+         "quad72MJ", "x102772MJ", "x5712672MJ")]
+
+MSMS_mod[MSMS_mod[ ,"id"] == "127.0392579_1594.703968_25", ] ## 127.0392579_1594.703968_25 quad0
+MSMS_mod[MSMS_mod[ ,"id"] == "163.0386309_218.982976_3174", ]## 163.0386309_218.982976_3174 clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "470.2287116_423.60948_8", ] ## 470.2287116_423.60948_8 clev72MJ x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "470.2287831_393.866456_14", ] ## 470.2287831_393.866456_14 clev72MJ x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "470.228995_445.711984_2", ] ## 470.228995_445.711984_2 clev72MJ x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "715.3165743_1827.351984_44", ] ## 715.3165743_1827.351984_44 clev72WOS clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "205.0701841_1670.496992_141", ] ## 715.3165743_1827.351984_44 ## clev72WOS clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "631.2597299_1309.32096_42", ] ## 631.2597299_1309.32096_42 clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "223.9881918_62.172944_1206", ] ## 223.9881918_62.172944_1206   
+MSMS_mod[MSMS_mod[ ,"id"] == "715.3170157_1844.527984_137", ] ## 715.3170157_1844.527984_137 clev72WOS clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "263.0160941_82.096992_3492", ] ## 263.0160941_82.096992_3492 quad72WOS 
+MSMS_mod[MSMS_mod[ ,"id"] == "907.3897549_1145.795472_31", ] ## 907.3897549_1145.795472_31 quad72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "885.4119913_1144.533496_69", ] ## 885.4119913_1144.533496_69 clev72MJ quad72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "341.1954553_1942.987448_4132", ] ## 341.1954553_1942.987448_4132 clev72WOS clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "355.2812701_2371.359952_307", ] ## 355.2812701_2371.359952_307 quad72MJ
+
+MSMS_mod[MSMS_mod[ ,"id"] == "389.1600222_348.017472_2865", ] ## 389.1600222_348.017472_2865 ## x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "411.1139588_1039.43396_2179", ] ## 411.1139588_1039.43396_2179 ## quad72MJ --> DTG?
+MSMS_mod[MSMS_mod[ ,"id"] == "457.3496867_2527.40848_2105", ] ## 457.3496867_2527.40848_2105 
+MSMS_mod[MSMS_mod[ ,"id"] == "470.2292672_474.074984_2988", ] ## 470.2292672_474.074984_2988 ## clev72MJ x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "488.2395777_293.97496_2953", ] ## 488.2395777_293.97496_2953 ## clev72MJ x102772MJ x5712672MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "497.1147606_1121.87796_2188", ] ## 497.1147606_1121.87796_2188 ## clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "589.8289581_62.11848_1531", ] ## 589.8289581_62.11848_1531 ## x5712672MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "613.482807_2501.44496_2892", ] ## 613.482807_2501.44496_2892  ## quad72MJ x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "613.4830352_2152.155464_3276", ] ## 613.4830352_2152.155464_3276
+MSMS_mod[MSMS_mod[ ,"id"] == "613.4830771_2558.736_2679", ] ## 613.4830771_2558.736_2679 ## quad72MJ x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "613.4830781_2531.185984_2123", ] ## 613.4830781_2531.185984_2123 ## quad72MJ x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "659.2272162_2616.72348_111", ] ## 659.2272162_2616.72348_111 ## x102772MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "631.2597645_1330.040944_180", ] ## 631.2597645_1330.040944_180 ## clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "645.2751122_1427.545488_74", ] ## 645.2751122_1427.545488_74   
+MSMS_mod[MSMS_mod[ ,"id"] == "645.2757282_1450.876984_3811", ] ## 645.2757282_1450.876984_3811
+MSMS_mod[MSMS_mod[ ,"id"] == "683.3331589_1593.711976_299", ] ## 683.3331589_1593.711976_299 ## clev72WOS
+MSMS_mod[MSMS_mod[ ,"id"] == "739.3536942_1158.06496_2545", ] ## 739.3536942_1158.06496_2545 ## x102772MJ x5712672MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "758.5576373_2580.415984_3655", ] ## 758.5576373_2580.415984_3655
+MSMS_mod[MSMS_mod[ ,"id"] == "758.5599477_2521.877968_2131", ] ## 758.5599477_2521.877968_2131 
+MSMS_mod[MSMS_mod[ ,"id"] == "758.5606057_2547.507968_3121", ] ## 758.5606057_2547.507968_3121 
+MSMS_mod[MSMS_mod[ ,"id"] == "758.5613199_2499.50696_207", ] ## 758.5613199_2499.50696_207  
+MSMS_mod[MSMS_mod[ ,"id"] == "758.5649767_2597.742976_3862", ] ## 758.5649767_2597.742976_3862
+MSMS_mod[MSMS_mod[ ,"id"] == "780.554797_2634.042992_368", ] ## 780.554797_2634.042992_368  
+MSMS_mod[MSMS_mod[ ,"id"] == "775.5241672_2538.101968_33", ] ## 775.5241672_2538.101968_33  ## clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "780.5497593_2679.234472_4414", ] ## 780.5497593_2679.234472_4414
+MSMS_mod[MSMS_mod[ ,"id"] == "780.5544525_2599.237472_3863", ] ## 780.5544525_2599.237472_3863 
+MSMS_mod[MSMS_mod[ ,"id"] == "780.5546838_2658.28796_4155", ] ## 780.5546838_2658.28796_4155 
+MSMS_mod[MSMS_mod[ ,"id"] == "798.5222853_2491.077968_3392", ] ## 798.5222853_2491.077968_3392 quad72WOS
+MSMS_mod[MSMS_mod[ ,"id"] == "799.5110101_2467.589968_4003", ] ## 799.5110101_2467.589968_4003 x102772MJ x5712672MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "825.3531956_1217.079448_3277", ] ## 825.3531956_1217.079448_3277 clev72MJ --> DTG?
+MSMS_mod[MSMS_mod[ ,"id"] == "825.3565633_1187.377464_61", ] ## 825.3565633_1187.377464_61 clev72MJ
+MSMS_mod[MSMS_mod[ ,"id"] == "902.4113684_1042.403968_2513", ] ## 902.4113684_1042.403968_2513 clev72MJ quad72MJ --> DTG?
 @
 
 
@@ -888,28 +910,33 @@ ggplot(arrange(df, groups), aes(y = metabolites, x = treatment, fill = groups)) 
 
 <<inducibility>>=
 ## get inducibility for W+OS and MeJA
-Compounds_bin <- function(peaklist2, spec, time, mode, threshold) {
-    ##features <- apply(peaklist2[, cols], 1, table, useNA = "always")
-    features <- peaklist[, paste0(spec, time, mode)]
-    features <- ifelse(features <= threshold, FALSE, TRUE)
-    ##features_l <- lapply(1:length(features), function(x) as.vector(features[[x]][length(features[[x]])]))
-    ##binary <- logical(dim(peaklist2)[1])
-    ##indFeatures <- which(unlist(features_l) <= 2)
-    ##binary[indFeatures] <- TRUE
-    return(features)
+
+## function to get logical values that indicate if ion is found in spectra
+Compounds_bin <- function(peaklist2, ind, cols, threshold) {
+    features <- apply(peaklist2[, cols][, ind], 1, table, useNA = "always")
+    #features <- peaklist[, paste0(spec, time, mode)]
+    #features <- ifelse(features <= threshold, FALSE, TRUE)
+    features_l <- lapply(1:length(features), function(x) as.vector(features[[x]][length(features[[x]])]))
+    binary <- logical(dim(peaklist2)[1])
+    indFeatures <- which(unlist(features_l) <= threshold)
+    binary[indFeatures] <- TRUE
+    return(binary)
 }
+## synthetised ones for att0
+Compounds_bin(peaklist_mapped2, ind = 1:5, cols = 26:145, threshold = 2)
+Compounds_bin(peaklist_mapped2, ind = 6:10, cols = 26:145, threshold = 2)
 
 
-inducibility <- function(peaklist2, MSMS, ind0 = 1:5, ind72 = 6:10, cols = 20:79, paired = TRUE, spec, mode) {
+inducibility <- function(peaklist, peaklist2, ind0 = 1:5, ind72 = 6:10, cols = 26:145, paired = TRUE) {
     if (length(ind0) != 5) stop("length of ind0 not 5")
     if (length(ind72) != 5) stop("length of ind72 not 5")
     
-    geno_bin_0 <- Compounds_bin(peaklist2, spec, time = "0", mode = NULL, threshold = 4)
-    geno_bin_72 <- Compounds_bin(peaklist2, spec, time = "72", mode = mode, threshold = 2)
+    geno_bin_0 <- Compounds_bin(peaklist2, ind = ind0, cols = cols, threshold = 2)
+    geno_bin_72 <- Compounds_bin(peaklist2, ind = ind72, cols = cols, threshold = 2)
     
     
     ## pc group for genotype
-    pcgroupGenotype <- as.numeric(peaklist2[, "pcgroup"])
+    pcgroupGenotype <- as.vector(peaklist2[, "pcgroup"])
     #PCGROUP <- unique(pcgroupGenotype)
     
     
@@ -917,17 +944,17 @@ inducibility <- function(peaklist2, MSMS, ind0 = 1:5, ind72 = 6:10, cols = 20:79
     #PCGROUP_uni_0 <- unique(pcgroup0)
     #pcgroup72 <- MSMS[which(MSMS[, paste0(spec, "72", mode)] == 1), "pc_group"]
     #PCGROUP_uni_72 <- unique(pcgroup72)
-    pcgroup0 <- as.numeric(peaklist2[geno_bin_0, "pcgroup"])
+    pcgroup0 <- as.vector(peaklist[geno_bin_0, "pcgroup"])
     PCGROUP_uni_0 <- unique(pcgroup0)
-    pcgroup72 <- as.numeric(peaklist2[geno_bin_72, "pcgroup"])
+    pcgroup72 <- as.vector(peaklist[geno_bin_72, "pcgroup"])
     PCGROUP_uni_72 <- unique(pcgroup72)
     
-    ## how many compounds does the genotype have?
-    ## check first for each i how many are not filled
-    #peaklist0 <- peaklist1[, cols[ ind0 ]]
-    peaklist0_2 <- peaklist2[, cols[ ind0 ]]
-    peaklist72_2 <- peaklist2[, cols [ind72 ]]
-    #peaklist72 <- peaklist1[, cols[ ind72 ]]
+    ## truncate peaklist
+    peaklist0 <- peaklist[, cols[ ind0 ]]
+    mode(peaklist0) <- "numeric"
+    peaklist72 <- peaklist[, cols [ind72 ]]
+    mode(peaklist72) <- "numeric"
+    
     
     # pcgroupGenotype <- as.numeric(pcgroupGenotype)
     
@@ -935,38 +962,59 @@ inducibility <- function(peaklist2, MSMS, ind0 = 1:5, ind72 = 6:10, cols = 20:79
     # inducibilityGenotype <- numeric(length(PCGROUP))
     # pvalueGenotype <- numeric(length(PCGROUP))
     # fc <- numeric(length(PCGROUP))
-    inducibilityGenotype_72 <- rep(NA, max(c(as.numeric(unique(pcgroupGenotype)), PCGROUP_uni_72)))
-    pvalueGenotype_72 <- rep(NA, length(inducibilityGenotype_72))
-    fc <- rep(NA, length(inducibilityGenotype_72))
+   
     
-    for (i in PCGROUP_uni_72) { ## 1, 2, ... length(PCGROUP) ## was for(i in 1:length(PCGROUP))
+     #times_pcgroup_uni_72 <- as.numeric(unlist(lapply(strsplit(PCGROUP_uni_72, split = "_"), "[", 1)))
+   # times_pcgroupGenotype <- as.numeric(unlist(lapply(strsplit(pcgroupGenotype, split = "_"), "[", 1)))
+    ##inducibilityGenotype_72 <- rep(NA, max(c(as.numeric(unique(pcgroupGenotype)), PCGROUP_uni_72)))
+    
+    
+    ## combine pcs from two timepoints
+    joined_pcs <- sort(union(PCGROUP_uni_0, PCGROUP_uni_72))
+    
+    inducibilityGenotype_72 <- rep(NA, length(joined_pcs))
+    names(inducibilityGenotype_72) <- joined_pcs
+    
+    pvalueGenotype_72 <- rep(NA, length(joined_pcs))
+    names(pvalueGenotype_72) <- joined_pcs
+    
+    fc <- rep(NA, length(joined_pcs)) 
+    names(fc) <- joined_pcs
+    
+    #inducibilityGenotype_72 <- rep(NA, max(times_pcgroupGenotype))
+    ## 
+    #pvalueGenotype_72 <- rep(NA, length(inducibilityGenotype_72))
+    #fc <- rep(NA, length(inducibilityGenotype_72))
+    
+    for (i in joined_pcs) { ## 1, 2, ... length(PCGROUP) ## was for(i in 1:length(PCGROUP))
         inds <- which(pcgroupGenotype == i) 
         ## truncate inds so that only those inds are used which actually show up in peaklist for
         ## 72 h time point
         inds <- inds[geno_bin_72[inds]] 
         
+        pvalues <- numeric(length(inds))
+        peak0 <- as.matrix(peaklist0[inds, ])
+        peak72 <- as.matrix(peaklist72[inds, ])
+            
+        ## fold change
+        meanPeak0 <- as.vector(apply(peak0, 1, mean, na.rm = TRUE))
+        meanPeak0[meanPeak0 == 0] <- 0.00001
+        meanPeak72 <- as.vector(apply(peak72, 1, mean, na.rm = TRUE))
+        meanFoldChange <- mean(meanPeak72 / meanPeak0)
+        fc[i] <- meanFoldChange
+            
         if (length(inds) != 0) {
-            pvalues <- numeric(length(inds))
-            peak0 <- as.matrix(peaklist0_2[inds, ])
-            peak72 <- as.matrix(peaklist72_2[inds, ])
-            test <- lapply(1:length(inds), FUN = function(x) {
-                ## cond 1, test if we can do shapiro.test, if not assume that data is not normally-distributed
-                cond1 <- if(inherits(try(shapiro.test(peak0[x,]), silent = TRUE), "try-error")) {0.01} else{shapiro.test(peak0[x,])$p.value}
-                ## cond 2, test if we can do shapiro.test, if not assume that data is not normally-distributed
-                cond2 <- if(inherits(try(shapiro.test(peak72[x,]), silent= TRUE), "try-error")) {0.01} else{shapiro.test(peak72[x,])$p.value}
-                if (cond1 > 0.05 & cond2 > 0.05) {
-                    t.test(peak0[x,], peak72[x,], alternative = "less", paired = paired)$p.value
-                } else {
-                    if(inherits(try(wilcox.test(as.numeric(peak0[x,]), as.numeric(peak72[x,]), alternative = "less", paired = paired, exact = TRUE), silent = TRUE), "try-error")) {0.5} else{wilcox.test(as.numeric(peak0[x,]), as.numeric(peak72[x,]), alternative = "less", paired = paired, exact = TRUE)$p.value}}
+        test <- lapply(1:length(inds), FUN = function(x) {
+            ## cond 1, test if we can do shapiro.test, if not assume that data is not normally-distributed
+            cond1 <- if(inherits(try(shapiro.test(peak0[x,]), silent = TRUE), "try-error")) {0.01} else{shapiro.test(peak0[x,])$p.value}
+            ## cond 2, test if we can do shapiro.test, if not assume that data is not normally-distributed
+            cond2 <- if(inherits(try(shapiro.test(peak72[x,]), silent= TRUE), "try-error")) {0.01} else{shapiro.test(peak72[x,])$p.value}
+            if (cond1 > 0.05 & cond2 > 0.05) {
+                t.test(peak0[x,], peak72[x,], alternative = "less", paired = paired)$p.value
+            } else {
+                if(inherits(try(wilcox.test(as.numeric(peak0[x,]), as.numeric(peak72[x,]), alternative = "less", paired = paired, exact = TRUE), silent = TRUE), "try-error")) {0.5} else{wilcox.test(as.numeric(peak0[x,]), as.numeric(peak72[x,]), alternative = "less", paired = paired, exact = TRUE)$p.value}}
                 
             })
-            
-            ## fold change
-            meanPeak0 <- apply(peak0, 1, mean, na.rm = TRUE)
-            meanPeak72 <- apply(peak72, 1, mean, na.rm = TRUE)
-            meanFoldChange <- mean(meanPeak72 / meanPeak0)
-            fc[i] <- meanFoldChange
-            
             test_unlist <- unlist(test)
             pvalues[test_unlist <= 0.05] <- TRUE
             if (sum(pvalues) / length(pvalues) >= 0.66) {
@@ -975,10 +1023,10 @@ inducibility <- function(peaklist2, MSMS, ind0 = 1:5, ind72 = 6:10, cols = 20:79
                 inducibilityGenotype_72[i] <- FALSE}
                 pvalueGenotype_72[i] <- mean(test_unlist)
         }
-        if (length(inds) == 0) pvalueGenotype_72[i] <- NA
-        if (length(inds) == 0) inducibilityGenotype_72[i] <- NA
-        if (length(inds) == 0) fc[i] <- NA
         
+        if (length(inds) == 0) pvalueGenotype_72[i] <- 0.5
+        if (length(inds) == 0) inducibilityGenotype_72[i] <- FALSE
+            
     }
     
     ## how many compounds are induced? -1 because of remaining NA value
@@ -991,109 +1039,558 @@ inducibility <- function(peaklist2, MSMS, ind0 = 1:5, ind72 = 6:10, cols = 20:79
         "fold_change" = fc))
 }
 
-## remove unncessary row entries in peaklist
-truncatePeaklist <- function(peaklist, MSMS_mod, mode = c("WOS", "MJ")) {
-    peaklistNew <- NULL
-    peaklistPC <- as.numeric(peaklist[, "pcgroup"])
-    uniquePrecursor <- as.character(unique(MSMS_mod[, "id"]))
-    for (i in 1:length(uniquePrecursor)) {
-        inds <- which(MSMS_mod[, "id"] == as.character(uniquePrecursor[i]))
-    
-        if (mode == "WOS") {
-            mapped1 <- "mapped1WOS"
-            mapped2 <- "mapped2WOS"
-            rt <- "rtWOS"
-            mz <- "mzWOS"
-        }
-        if (mode == "MJ") {
-            mapped1 <- "mapped1MJ"
-            mapped2 <- "mapped2MJ"
-            rt <- "rtMJ"
-            mz <- "mzMJ"
-        }
-    
-        if (any(c(as.numeric(MSMS_mod[inds, mapped1]), as.numeric(MSMS_mod[inds, mapped2])) - 1 == 1)) {
-            peaklistInd <- unique(
-                which(peaklist[, "rt"] == unique(MSMS_mod[inds, rt])),
-                which(peaklist[, "mz"] == unique(MSMS_mod[inds,  mz])))
-            peaklistPC_ind <- as.character(unique(peaklistPC[peaklistInd]))
-            peaklistPC_ind <- min(as.numeric(peaklistPC_ind))
-            if (length(peaklistPC_ind) > 1) {print(i); stop("")}
-            
-            newRowEntries <- peaklist[which(peaklistPC == peaklistPC_ind),]
-            if (length(unique(newRowEntries[, "pcgroup"])) > 1) {print(i); stop("")}
-            if (!(unique(newRowEntries[, "pcgroup"]) %in% peaklistNew[, "pcgroup"])) {
-                peaklistNew <- rbind(peaklistNew, 
-                                     newRowEntries)
-            }
-            
-                                 ##peaklist[which(peaklistPC == peaklistPC_ind),])
-        
-        }
-    }
-    return(peaklistNew)
-}
 
-peaklistWOS <- truncatePeaklist(peaklist, MSMS_mod, mode = "WOS")
-dim(peaklistWOS)
 
-peaklistMJ <- truncatePeaklist(peaklist, MSMS_mod, mode = "MJ")
-dim(peaklistMJ)
-
-inducedAtt <- inducibility(peaklistWOS, MSMS_mod,  ind0 = 1:5, ind72 = 6:10, cols, spec = "att", mode = "WOS")
+# peaklistWOS <- truncatePeaklist(peaklist_mapped, MSMS_mod, mode = "WOS")
+# dim(peaklistWOS)
+# 
+# peaklistMJ <- truncatePeaklist(peaklist, MSMS_mod, mode = "MJ")
+# dim(peaklistMJ)
+cols <- 26:145
+inducedAtt <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 1:5, ind72 = 6:10, cols = cols, paired = TRUE)
 inducedAtt[[1]]
 numMetAttWOS <- length(unique(inducedAtt[[3]]))
-inducedObt <- inducibility(peaklistWOS, MSMS_mod, ind0 = 11:15, ind72 = 16:20, cols, spec = "obt", mode = "WOS")
+inducedObt <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 11:15, ind72 = 16:20, cols = cols, paired = TRUE)
 inducedObt[[1]]
 numMetObtWOS <- length(unique(inducedObt[[3]]))
-##inducedClev <- inducibility(peaklist, peaklist2, ind0 = 21:25, ind72 = 26:30)
-##inducedClev[[1]]
+inducedClev <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 21:25, ind72 = 26:30, cols = cols, paired = TRUE)
+inducedClev[[1]]
 numMetClevWOS <- length(unique(inducedClev[[3]]))
-##inducedQuad <- inducibility(peaklist, peaklist2, ind0 = 31:35, ind72 = 36:40)
-##inducedQuad[[1]]
+inducedQuad <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 31:35, ind72 = 36:40, cols = cols, paired = TRUE)
+inducedQuad[[1]]
 numMetQuadWOS <- length(unique(inducedQuad[[3]]))
-##inducedX1027 <- inducibility(peaklist, peaklist2, ind0 = 41:45, ind72 = 46:50)
-##inducedX1027[[1]]
+inducedX1027 <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 41:45, ind72 = 46:50, cols = cols, paired = TRUE)
+inducedX1027[[1]]
 numMetX1027WOS <- length(unique(inducedX1027[[3]]))
-##inducedX57126 <- inducibility(peaklist, peaklist2, ind0 = c(51:54, 51), ind72 = c(56:59, 56)) ## last was not induced
-##inducedX57126[[1]]
+inducedX57126 <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = c(51:54, 51), ind72 = c(56:59, 56), cols = cols, paired = TRUE) ## last was not induced
+inducedX57126[[1]]
 numMetX57126WOS <- length(unique(inducedX57126[[3]]))
 
 ## bootstrapping to check if number of metabolites correlates negatively with inducibility
-##bs15 <- lapply(1:100, function (x) sample(1:5, 5, replace = T))
-##bs610 <- lapply(bs15, function (x) x + 5)
-##indAttbs <- lapply(1:100, function(x) inducibility(peaklist, peaklist2, ind0 = bs15[[x]], ind72 = bs610[[x]]))
-##indAttbs_numInd <- unlist(lapply(indAttbs, function(x) sum(x[[4]], na.rm = TRUE)))
-##indAttbs_numTot <- unlist(lapply(indAttbs, function(x) length(unique(x[[3]]))))
+bs15 <- lapply(1:100, function (x) sample(1:5, 5, replace = T))
+bs610 <- lapply(bs15, function (x) x + 5)
+indAttbs <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs15[[x]], ind72 = bs610[[x]], cols = cols, paired = TRUE))
+indAttbs_numInd <- unlist(lapply(indAttbs, function(x) sum(x[[4]], na.rm = TRUE)))
+indAttbs_numTot <- unlist(lapply(indAttbs, function(x) length(unique(x[[3]]))))
 
-##bs1115 <- lapply(1:100, function (x) sample(11:15, 5, replace = T))
-##bs1620 <- lapply(bs1115, function (x) x + 5)
-##indObtbs <- lapply(1:100, function(x) inducibility(peaklist, peaklist2, ind0 = bs1115[[x]], ind72 = bs1620[[x]]))
-##indObtbs_numInd <- unlist(lapply(indObtbs, function(x) sum(x[[4]], na.rm = TRUE)))
-##indObtbs_numTot <- unlist(lapply(indObtbs, function(x) length(unique(x[[3]]))))
+bs1115 <- lapply(1:100, function (x) sample(11:15, 5, replace = T))
+bs1620 <- lapply(bs1115, function (x) x + 5)
+indObtbs <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs1115[[x]], ind72 = bs1620[[x]], cols = cols, paired = TRUE))
+indObtbs_numInd <- unlist(lapply(indObtbs, function(x) sum(x[[4]], na.rm = TRUE)))
+indObtbs_numTot <- unlist(lapply(indObtbs, function(x) length(unique(x[[3]]))))
 
-##bs2125 <- lapply(1:100, function (x) sample(21:25, 5, replace = T))
-##bs2630 <- lapply(bs2125, function (x) x + 5)
-##indClevbs <- lapply(1:100, function(x) inducibility(peaklist, peaklist2, ind0 = bs2125[[x]], ind72 = bs2630[[x]]))
-##indClevbs_numInd <- unlist(lapply(indClevbs, function(x) sum(x[[4]], na.rm = TRUE)))
-##indClevbs_numTot <- unlist(lapply(indClevbs, function(x) length(unique(x[[3]]))))
+bs2125 <- lapply(1:100, function (x) sample(21:25, 5, replace = T))
+bs2630 <- lapply(bs2125, function (x) x + 5)
+indClevbs <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs2125[[x]], ind72 = bs2630[[x]], cols = cols, paired = TRUE))
+indClevbs_numInd <- unlist(lapply(indClevbs, function(x) sum(x[[4]], na.rm = TRUE)))
+indClevbs_numTot <- unlist(lapply(indClevbs, function(x) length(unique(x[[3]]))))
 
-##bs3135 <- lapply(1:100, function (x) sample(31:35, 5, replace = T))
-##bs3640 <- lapply(bs3135, function (x) x + 5)
-##indQuadbs <- lapply(1:100, function(x) inducibility(peaklist, peaklist2, ind0 = bs3135[[x]], ind72 = bs3640[[x]]))
-##indQuadbs_numInd <- unlist(lapply(indQuadbs, function(x) sum(x[[4]], na.rm = TRUE)))
-##indQuadbs_numTot <- unlist(lapply(indQuadbs, function(x) length(unique(x[[3]]))))
+bs3135 <- lapply(1:100, function (x) sample(31:35, 5, replace = T))
+bs3640 <- lapply(bs3135, function (x) x + 5)
+indQuadbs <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs3135[[x]], ind72 = bs3640[[x]], cols = cols, paired = TRUE))
+indQuadbs_numInd <- unlist(lapply(indQuadbs, function(x) sum(x[[4]], na.rm = TRUE)))
+indQuadbs_numTot <- unlist(lapply(indQuadbs, function(x) length(unique(x[[3]]))))
 
-##bs4145 <- lapply(1:100, function (x) sample(41:45, 5, replace = T))
-##bs4650 <- lapply(bs4145, function (x) x + 5)
-##indX1027bs <- lapply(1:100, function(x) inducibility(peaklist, peaklist2, ind0 = bs4145[[x]], ind72 = bs4650[[x]]))
-##indX1027bs_numInd <- unlist(lapply(indX1027bs, function(x) sum(x[[4]], na.rm = TRUE)))
-##indX1027bs_numTot <- unlist(lapply(indX1027bs, function(x) length(unique(x[[3]]))))
+bs4145 <- lapply(1:100, function (x) sample(41:45, 5, replace = T))
+bs4650 <- lapply(bs4145, function (x) x + 5)
+indX1027bs <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs4145[[x]], ind72 = bs4650[[x]], cols = cols, paired = TRUE))
+indX1027bs_numInd <- unlist(lapply(indX1027bs, function(x) sum(x[[4]], na.rm = TRUE)))
+indX1027bs_numTot <- unlist(lapply(indX1027bs, function(x) length(unique(x[[3]]))))
 
-##bs5155 <- lapply(1:100, function (x) sample(51:54, 5, replace = T)) ## last not induced
-##bs5660 <- lapply(bs5155, function (x) x + 5)
-##indX57126bs <- lapply(1:100, function(x) inducibility(peaklist, peaklist2, ind0 = bs5155[[x]], ind72 = bs5660[[x]]))
-##indX57126bs_numInd <- unlist(lapply(indX57126bs, function(x) sum(x[[4]], na.rm = TRUE)))
-##indX57126bs_numTot <- unlist(lapply(indX57126bs, function(x) length(unique(x[[3]]))))
+bs5155 <- lapply(1:100, function (x) sample(51:54, 5, replace = T)) ## last not induced
+bs5660 <- lapply(bs5155, function (x) x + 5)
+indX57126bs <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs5155[[x]], ind72 = bs5660[[x]], cols = cols, paired = TRUE))
+indX57126bs_numInd <- unlist(lapply(indX57126bs, function(x) sum(x[[4]], na.rm = TRUE)))
+indX57126bs_numTot <- unlist(lapply(indX57126bs, function(x) length(unique(x[[3]]))))
+
+## save to bootstrapping_WOS.RData
+save(inducedAtt, inducedObt, inducedClev, inducedQuad, inducedX1027, inducedX57126,
+     indAttbs, indObtbs, indClevbs, indQuadbs, indX1027bs, indX57126bs,
+     indAttbs_numInd, indObtbs_numInd, indClevbs_numInd, indQuadbs_numInd, indX1027bs_numInd, 
+     indX57126bs_numInd, indAttbs_numTot, indObtbs_numTot, indClevbs_numTot, indQuadbs_numTot, 
+     indX1027bs_numTot, indX57126bs_numTot, file = "bootstrapping_WOS.RData")
+
+
+## plotting
+
+species <-  c("N. attenuata", "N. obtusifolia", "N. clevelandii", "N. quadrivalvis","N. x obtusiata 10/27", "N. x obtusiata 57/126")
+dfWOS <- data.frame(species = species, 
+                    total = c(numMetAttWOS, numMetObtWOS, numMetClevWOS, numMetQuadWOS, numMetX1027WOS, numMetX57126WOS),
+                    induced = c(length(which(inducedAtt[[4]])), length(which(inducedObt[[4]])),
+                                length(which(inducedClev[[4]])), length(which(inducedQuad[[4]])),
+                                length(which(inducedX1027[[4]])), length(which(inducedX57126[[4]])))                               )
+                    ##induced = c(inducedAtt[[1]], inducedObt[[1]], inducedClev[[1]], 
+                    ##            inducedQuad[[1]], inducedX1027[[1]], inducedX57126[[1]]) * 100)
+dfWOS$species <- factor(dfWOS$species, 
+        levels = c("N. attenuata", "N. obtusifolia", "N. clevelandii", 
+            "N. quadrivalvis", "N. x obtusiata 10/27", "N. x obtusiata 57/126"))
+## plot
+ggplot(dfWOS, aes(x=total, y = induced, color = species)) + 
+    geom_point(shape = 1, size=5) + xlab("") + ylab("") +
+    scale_colour_manual(values = colours) +  
+    scale_y_continuous(limits = c(4, 80)) + scale_x_continuous(limits =  c(125, 155))+
+    theme_bw() + 
+    theme(legend.text = element_text(face = "italic"), 
+          legend.title = element_blank(),
+          legend.key = element_blank(),
+          plot.background = element_blank(), 
+          axis.text = element_text(size = 15)
+          )
+
+
+numberInducedWOS <- c(indAttbs_numInd, indObtbs_numInd, indClevbs_numInd, 
+                      indQuadbs_numInd, indX1027bs_numInd, indX57126bs_numInd)
+numberTotalWOS <- c(indAttbs_numTot, indObtbs_numTot, indClevbs_numTot, 
+                    indQuadbs_numTot, indX1027bs_numTot, indX57126bs_numTot)
+
+
+species <- c(rep("N. attenuata", 100), rep("N. obtusifolia", 100), rep("N. clevelandii", 100), 
+             rep("N. quadrivalvis", 100), rep("N. x obtusiata 10/27", 100), rep("N. x obtusiata 57/126", 100))
+dfWOSbs <- data.frame(species = species, total = numberTotalWOS, inducedPerc = numberInducedWOS) ## * 100)
+dfWOSbs$species <- factor(dfWOSbs$species, 
+        levels = c("N. attenuata", "N. obtusifolia", "N. clevelandii", 
+            "N. quadrivalvis", "N. x obtusiata 10/27", "N. x obtusiata 57/126"))
+
+
+## plot
+ggplot(dfWOSbs, aes(x=total, y = inducedPerc, color = species)) + 
+    geom_point(shape = 1, size = 2) + 
+    scale_y_continuous(limits = c(4, 80)) + scale_x_continuous(limits =  c(125, 155))+
+    scale_colour_manual(values = colours) +
+    theme_bw() + xlab("") + 
+    ylab("") +
+    theme(legend.text = element_text(face = "italic"), 
+          legend.title = element_blank(),
+          legend.key = element_blank(),
+          plot.background = element_blank(), 
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.x = element_text(size = 15))
+
+##plot(y = inducedTotal, x = numberTotalMJ, 
+##     ylab = "number of induced / total metabolites", xlab = "number of total metabolites", 
+##     col = c(rep("blue", 100), rep("red", 100), rep("green", 100), rep("yellow", 100), rep("darkgrey", 100), rep("lightgrey", 100)), main = "MJ bootstrapping", cex = 0.5, legend =)
+dfWOSbs2 <- dfWOSbs
+
+dfWOSbs2 <- cbind(dfWOSbs2, diploid = c(rep( "d", 200), rep("t" , 400)))
+dfWOSbs2 <- cbind(dfWOSbs2, natural = c(rep( "d+n", 400), rep("s" , 200)))
+dfWOSbs2 <- cbind(dfWOSbs2, synthetic = c(rep("d+s", 200), rep("n", 200), rep("d+s", 200)))
+
+dfWOSbs2[, "species"] <- c(rep("diploid", 200), rep("natural", 200), rep("synthetic", 200))
+##dfWOSbs2 <- cbind(dfWOSbs2, synthetic = rep( "d+s", 400)) 
+dfWOSbs2 <- cbind(dfWOSbs2, pointshape = c(rep("c", 200), rep("b", 200), rep("a", 200)))
+dfWOSbs2 <- cbind(dfWOSbs2, pointsize = rep(0.1, 600))
+dfWOSbs2$species <- factor(dfWOSbs2$species)
+colorPalette2 <- c("black", alpha("black", 0.8), alpha("darkolivegreen3", 1), alpha("purple1", 0.70), alpha("darkolivegreen3", 0.7), alpha("purple1", 0.60))
+ggplot(dfWOSbs2, aes(x=total, y = inducedPerc, color=species)) + 
+    geom_point(aes(shape=pointshape), show.legend = TRUE, size = 2) +
+    theme_bw() + 
+    xlab("") + 
+    ylab("") +
+    scale_colour_manual(values = colorPalette2) + 
+    scale_shape_discrete(solid = FALSE, guide = FALSE) +
+    scale_y_continuous(limits = c(4, 80)) + scale_x_continuous(limits =  c(125, 155))+
+    geom_smooth(mapping = aes(x=total, y = inducedPerc, color = diploid), 
+                method = lm, formula= y~x-1, data = dfWOSbs2[1:200, ], se =FALSE, size = 1.5) + 
+    geom_smooth(mapping = aes(x=total, y=inducedPerc, color = natural), method = lm, formula= y~x-1, data = dfWOSbs2[1:400,], se = FALSE, size = 1.5) + 
+    geom_smooth(mapping = aes(x=total, y=inducedPerc, color = synthetic), method = lm, formula= y~x-1, data = dfWOSbs2[c(1:200, 401:600),], se = FALSE, size = 1.5) + 
+    scale_shape_manual(name = "species", labels = c( "synthetic", "natural", "diploid"), values = c(1, 2, 3)) +
+    scale_colour_manual(values = colorPalette2, 
+        guide =guide_legend(override.aes=list(labels = factor(c("d", "d+n", "d+s", "diploid", "natural", "synthetic"), levels = c("d", "d+n", "d+s", "diploid", "natural", "synthetic"), ordered=TRUE),  shape = c(NA, 0, NA, NA, 2, 1),
+                                        linetype=c("solid", "blank", "solid","solid", "blank", "blank")))) +
+    theme(legend.title = element_blank(),
+          plot.background = element_blank(),
+          legend.background = element_rect(colour=NA),
+         legend.key.size =   unit(1.2, "lines"), 
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.x = element_text(size = 15))
+
+
+
+##plot(x = numberTotalWOS, y = numberInducedWOS / numberTotalWOS, 
+##     xlab = "number of total metabolites", ylab = "number of induced metabolites", main = "bootstrapping WOS",
+##     col = c(rep("blue", 100), rep("red", 100), rep("green", 100), rep("yellow", 100), rep("darkgrey", 100), rep("lightgrey", 100)))
+inducedTotal <- numberInducedWOS ##/ numberTotalWOS * 100
+lmWOS_synthetic <- lm(inducedTotal[c(1:200, 401:600)] ~ numberTotalWOS[c(1:200, 401:600)] - 1)
+lmWOS_natural <- lm(inducedTotal[1:400] ~ numberTotalWOS[1:400] - 1)
+lmWOS_diploid <- lm(inducedTotal[1:200] ~ numberTotalWOS[1:200] - 1)
+
+
+## do some statistical testing
+indices200 <- lapply(1:100, function(x) sample(x = 1:200, size = 200, replace = TRUE))
+##slopeAttObt <- lapply(indices200, function(x) lm(c(c(indAttbs_numInd, indObtbs_numInd)/c(indAttbs_numTot, indObtbs_numTot))[x] ~ c(indAttbs_numTot, indObtbs_numTot)[x] - 1)$coefficients)
+slopeAttObt <- lapply(indices200, function(x) lm(c(indAttbs_numInd, indObtbs_numInd)[x] ~ c(indAttbs_numTot, indObtbs_numTot)[x] - 1)$coefficients)
+indicesSynthetic <- lapply(1:100, function(x) sample(x = c(1:200, 401:600), size = 400, replace = TRUE))
+indicesNatural <- lapply(1:100, function(x) sample(x = c(1:400), size = 400, replace = TRUE))
+##slopeTotal <- lapply(indicesTotal, function(x) lm(c(numberInducedWOS / numberTotalWOS)[x] ~ numberTotalWOS[x] - 1)$coefficients)
+slopeSynthetic <- lapply(indicesSynthetic, function(x) lm(c(numberInducedWOS)[x] ~ numberTotalWOS[x] - 1)$coefficients)
+slopeNatural <- lapply(indicesNatural, function(x) lm(c(numberInducedWOS)[x] ~ numberTotalWOS[x] - 1)$coefficients)
+##boxplot(unlist(slopeAttObt), unlist(slopeTotal))
+ttestLM_diploid_synthetic <- t.test(unlist(slopeAttObt), unlist(slopeSynthetic), paired = FALSE, alternative = "two.sided")
+ttestLM_diploid_natural <- t.test(unlist(slopeAttObt), unlist(slopeNatural), paired = FALSE, alternative = "two.sided")
 
 @
+
+<<inducibilityMJ,eval=TRUE,echo=FALSE, fig.show='hide',results='hide',warning=FALSE>>=
+load("bootstrapping_MJ.RData")
+## check genotypes for inducibility
+inducedAttMJ <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 61:65, ind72 = 66:70, cols = cols, paired = TRUE)
+inducedAttMJ[[1]]
+numMetAttMJ <- length(unique(inducedAttMJ[[3]]))
+inducedObtMJ <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 71:75, ind72 = 76:80, cols = cols, paired = TRUE)
+inducedObtMJ[[1]]
+numMetObtMJ <- length(unique(inducedObtMJ[[3]]))
+inducedClevMJ <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 81:85, ind72 = 86:90, cols = cols, paired = TRUE)
+inducedClevMJ[[1]]
+numMetClevMJ <- length(unique(inducedClevMJ[[3]]))
+inducedQuadMJ <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 91:95, ind72 = 96:100, cols = cols, paired = TRUE)
+inducedQuadMJ[[1]]
+numMetQuadMJ <- length(unique(inducedQuadMJ[[3]]))
+inducedX1027MJ <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 101:105, ind72 = 106:110, cols = cols, paired = TRUE)
+inducedX1027MJ[[1]]
+numMetX1027MJ <- length(unique(inducedX1027MJ[[3]]))
+inducedX57126MJ <- inducibility(peaklist_mapped, peaklist_mapped2, ind0 = 111:115, ind72 = 116:120, cols = cols, paired = TRUE)
+inducedX57126MJ[[1]]
+numMetX57126MJ <- length(unique(inducedX57126MJ[[3]]))
+
+## bootstrapping to check if number of metabolites correlates negatively with inducibility
+bs6165 <- lapply(1:100, function (x) sample(61:65, 5, replace = T))
+bs6670 <- lapply(bs6165, function (x) x + 5)
+indAttbsMJ <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs6165[[x]], ind72 = bs6670[[x]], cols = cols, paired = TRUE))
+indAttbsMJ_numInd <- unlist(lapply(indAttbsMJ, function(x) sum(x[[4]], na.rm = TRUE)))
+indAttbsMJ_numTot <- unlist(lapply(indAttbsMJ, function(x) length(unique(x[[3]]))))
+
+bs7175 <- lapply(1:100, function (x) sample(71:75, 5, replace = T))
+bs7680 <- lapply(bs7175, function (x) x + 5)
+indObtbsMJ <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs7175[[x]], ind72 = bs7680[[x]], cols = cols, paired = TRUE))
+indObtbsMJ_numInd <- unlist(lapply(indObtbsMJ, function(x) sum(x[[4]], na.rm = TRUE)))
+indObtbsMJ_numTot <- unlist(lapply(indObtbsMJ, function(x) length(unique(x[[3]]))))
+
+bs8185 <- lapply(1:100, function (x) sample(81:85, 5, replace = T))
+bs8690 <- lapply(1:100, function (x) sample(86:90, 5, replace = T))
+indClevbsMJ <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs8185[[x]], ind72 = bs8690[[x]], cols = cols, paired = TRUE))
+indClevbsMJ_numInd <- unlist(lapply(indClevbsMJ, function(x) sum(x[[4]], na.rm = TRUE)))
+indClevbsMJ_numTot <- unlist(lapply(indClevbsMJ, function(x) length(unique(x[[3]]))))
+
+bs9195 <- lapply(1:100, function (x) sample(91:95, 5, replace = T))
+bs96100 <- lapply(bs9195, function (x) x + 5)
+indQuadbsMJ <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs9195[[x]], ind72 = bs96100[[x]], cols = cols, paired = TRUE))
+indQuadbsMJ_numInd <- unlist(lapply(indQuadbsMJ, function(x) sum(x[[4]], na.rm = TRUE)))
+indQuadbsMJ_numTot <- unlist(lapply(indQuadbsMJ, function(x) length(unique(x[[3]]))))
+
+bs101105 <- lapply(1:100, function (x) sample(101:105, 5, replace = T))
+bs106110 <- lapply(bs101105, function (x) x + 5)
+indX1027bsMJ <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs101105[[x]], ind72 = bs106110[[x]], cols = cols, paired = TRUE))
+indX1027bsMJ_numInd <- unlist(lapply(indX1027bsMJ, function(x) sum(x[[4]], na.rm = TRUE)))
+indX1027bsMJ_numTot <- unlist(lapply(indX1027bsMJ, function(x) length(unique(x[[3]]))))
+
+bs111115 <- lapply(1:100, function (x) sample(111:115, 5, replace = T))
+bs116120 <- lapply(bs111115, function (x) x + 5)
+indX57126bsMJ <- lapply(1:100, function(x) inducibility(peaklist_mapped, peaklist_mapped2, ind0 = bs111115[[x]], ind72 = bs116120[[x]], cols = cols, paired = TRUE))
+indX57126bsMJ_numInd <- unlist(lapply(indX57126bsMJ, function(x) sum(x[[4]], na.rm = TRUE)))
+indX57126bsMJ_numTot <- unlist(lapply(indX57126bsMJ, function(x) length(unique(x[[3]]))))
+
+## save to bootstrapping_MJ.RData
+save(inducedAttMJ, inducedObtMJ, inducedClevMJ, inducedQuadMJ, inducedX1027MJ, inducedX57126MJ,
+        indAttbsMJ_numInd, indAttbsMJ_numTot, indObtbsMJ_numInd, indObtbsMJ_numTot, 
+        indClevbsMJ_numInd, indClevbsMJ_numTot, indQuadbsMJ_numInd, indQuadbsMJ_numTot, 
+        indX1027bsMJ_numInd, indX1027bsMJ_numTot, indX57126bsMJ_numInd, indX57126bsMJ_numTot,
+    file = "bootstrapping_MJ.RData")
+
+## plotting
+species <-  c("N. attenuata", "N. obtusifolia", "N. clevelandii", "N. quadrivalvis","N. x obtusiata 10/27", "N. x obtusiata 57/126")
+dfMJ <- data.frame(species = species, 
+                    total = c(numMetAttMJ, numMetObtMJ, numMetClevMJ, numMetQuadMJ, numMetX1027MJ, numMetX57126MJ),
+                   induced = c(length(which(inducedAttMJ[[4]])), length(which(inducedObtMJ[[4]])),
+                               length(which(inducedClevMJ[[4]])), length(which(inducedQuadMJ[[4]])),
+                               length(which(inducedX1027MJ[[4]])), length(which(inducedX57126MJ[[4]]))))
+                    ##induced = c(inducedAttMJ[[1]], inducedObtMJ[[1]], inducedClevMJ[[1]], 
+                    ##            inducedQuadMJ[[1]], inducedX1027MJ[[1]], inducedX57126MJ[[1]]) * 100)
+dfMJ$species <- factor(dfMJ$species, 
+        levels = c("N. attenuata", "N. obtusifolia", "N. clevelandii", 
+            "N. quadrivalvis", "N. x obtusiata 10/27", "N. x obtusiata 57/126"))
+## plot
+ggplot(dfMJ, aes(x=total, y = induced, color = species)) + 
+    geom_point(shape = 1,size = 5) + xlab("") + ylab("") + 
+    scale_y_continuous(limits = c(4, 80)) + scale_x_continuous(limits = c(125, 165)) + 
+    scale_colour_manual(values = colours) +
+    theme_bw() + 
+    theme(legend.text = element_text(face = "italic"), 
+          legend.title = element_blank(),
+          legend.key = element_blank(),
+          plot.background = element_blank(), 
+          axis.text = element_text(size = 15))
+
+## bootstraping
+numberInducedMJ <- c(indAttbsMJ_numInd, indObtbsMJ_numInd, indClevbsMJ_numInd, 
+                      indQuadbsMJ_numInd, indX1027bsMJ_numInd, indX57126bsMJ_numInd)
+numberTotalMJ <- c(indAttbsMJ_numTot, indObtbsMJ_numTot, indClevbsMJ_numTot, 
+                    indQuadbsMJ_numTot, indX1027bsMJ_numTot, indX57126bsMJ_numTot)
+inducedTotal <- (numberInducedMJ) ## / numberTotalMJ) * 100
+species <- c(rep("N. attenuata", 100), rep("N. obtusifolia", 100), rep("N. clevelandii", 100), 
+             rep("N. quadrivalvis", 100), rep("N. x obtusiata 10/27", 100), rep("N. x obtusiata 57/126", 100))
+dfMJbs <- data.frame(species = species, total = numberTotalMJ, inducedPerc = inducedTotal)
+dfMJbs$species <- factor(dfMJbs$species, 
+        levels = c("N. attenuata", "N. obtusifolia", "N. clevelandii", 
+            "N. quadrivalvis", "N. x obtusiata 10/27", "N. x obtusiata 57/126"))
+
+
+## plot
+ggplot(dfMJbs, aes(x=total, y = inducedPerc, color = species)) + 
+    geom_point(shape = 1, size=2) + 
+    scale_colour_manual(values = colours) + 
+    scale_x_continuous(limits = c(125, 195)) + scale_y_continuous(limits = c(4, 80)) + 
+    theme_bw() + ylab("") + xlab("") + 
+    theme(legend.text = element_text(face = "italic"), 
+          legend.title = element_blank(), 
+          legend.key = element_blank(), 
+          plot.background = element_blank(), 
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.x = element_text(size = 15)) 
+
+##plot(y = inducedTotal, x = numberTotalMJ, 
+##     ylab = "number of induced / total metabolites", xlab = "number of total metabolites", 
+##     col = c(rep("blue", 100), rep("red", 100), rep("green", 100), rep("yellow", 100), rep("darkgrey", 100), rep("lightgrey", 100)), main = "MJ bootstrapping", cex = 0.5, legend =)
+dfMJbs2 <- dfMJbs
+dfMJbs2[, "species"] <- c(rep("diploid", 200), rep("natural", 200), rep("synthetic", 200))
+dfMJbs2 <- cbind(dfMJbs2, diploid = c(rep( "d", 200), rep("t" , 400)))
+dfMJbs2 <- cbind(dfMJbs2, natural = c(rep( "d+n", 400), rep("s" , 200)))
+dfMJbs2 <- cbind(dfMJbs2, synthetic = c(rep("d+s", 200), rep("n", 200), rep("d+s", 200)))
+##dfWOSbs2 <- cbind(dfWOSbs2, synthetic = rep( "diploid+synthetic", 400)) 
+dfMJbs2 <- cbind(dfMJbs2, pointshape = c(rep("c", 200), rep("b", 200), rep("a", 200)))
+dfMJbs2 <- cbind(dfMJbs2, pointsize = c(rep(0.05, 200), rep(0.05, 400)))
+dfMJbs2$species <- factor(dfMJbs2$species)
+
+
+colorPalette2 <- c("black", alpha("black", 0.8), alpha("darkolivegreen3", 1), alpha("purple1", 0.70), alpha("darkolivegreen3", 0.7), alpha("purple1", 0.60))
+ggplot(dfMJbs2, aes(x=total, y = inducedPerc, color=species)) + 
+    geom_point(aes(shape=pointshape), show.legend = TRUE, size = 2) +
+    theme_bw() + 
+    xlab("") + 
+    ylab("") +
+    ##scale_colour_manual(values = colorPalette2) + 
+    scale_shape_discrete(solid = FALSE, guide = FALSE) + 
+    
+    scale_y_continuous(limits = c(230, 850)) + scale_x_continuous(limits = c(1050, 1795))+
+    geom_smooth(mapping = aes(x=total, y = inducedPerc, color = diploid), 
+                method = lm, formula= y~x-1, data = dfMJbs2[1:200, ], se =FALSE, size = 1.5) + 
+    geom_smooth(mapping = aes(x=total, y=inducedPerc, color = natural), method = lm, formula= y~x-1, data = dfMJbs2[1:400,], se = FALSE, size = 1.5) + 
+    geom_smooth(mapping = aes(x=total, y=inducedPerc, color = synthetic), method = lm, formula= y~x-1, data = dfMJbs2[c(1:200, 401:600),], se = FALSE, size = 1.5) + 
+    #scale_shape_manual(name = "species", labels = c( "synthetic", "natural", "diploid"), values = c(1, 2, 3)) +
+    scale_colour_manual(values = colorPalette2, 
+         guide =guide_legend(override.aes=list(labels = factor(c("d", "d+n", "d+s", "diploid", "natural", "synthetic"), levels = c("d", "d+n", "d+s", "diploid", "natural", "synthetic"), ordered=TRUE),  shape = c(NA, 0, NA, NA, 2, 1),
+                                        linetype=c("solid", "blank", "solid","solid", "blank", "blank")))) +
+    theme(legend.title = element_blank(),
+          plot.background = element_blank(),
+          legend.background = element_rect(colour=NA),
+         legend.key.size =   unit(1.2, "lines"), 
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.x = element_text(size = 15))
+
+
+    
+##plot(y = inducedTotal[201:1600], x = numberTotalMJ[201:1600], 
+##     ylab = "number of induced / total metabolites", xlab = "number of total metabolites", 
+##     col = "darkgrey", main = "MJ bootstrapping", pch = ".", cex = 1.5, ylim = c(0.21, 0.62),
+##     xlim = c(748, 1660))
+inducedTotal <- numberInducedMJ ##/ numberTotalWOS * 100
+
+lmMJ_diploid <- lm(inducedTotal[1:200] ~ numberTotalMJ[1:200] - 1)
+lmMJ_natural <- lm(inducedTotal[1:400] ~ numberTotalMJ[1:400] - 1)
+lmMJ_synthetic <- lm(inducedTotal[c(1:200, 401:600)] ~ numberTotalMJ[c(1:200, 401:600)] - 1)
+
+## do some statistical testing
+indices200 <- lapply(1:100, function(x) sample(x = 1:200, size = 100, replace = TRUE))
+##slopeAttObt <- lapply(indices200, function(x) lm(c(c(indAttbsMJ_numInd, indObtbsMJ_numInd)/c(indAttbsMJ_numTot, indObtbsMJ_numTot))[x] ~ c(indAttbsMJ_numTot, indObtbsMJ_numTot)[x] - 1)$coefficients)
+slopeAttObt <- lapply(indices200, function(x) lm(c(indAttbsMJ_numInd, indObtbsMJ_numInd)[x] ~ c(indAttbsMJ_numTot, indObtbsMJ_numTot)[x] - 1)$coefficients)
+indicesNatural <- lapply(1:100, function(x) sample(x = c(1:400), size = 100, replace = TRUE))
+indicesSynthetic <- lapply(1:100, function(x) sample(x = c(1:2, 401:600), size = 100, replace = TRUE))
+##slopeTotal <- lapply(indicesTotal, function(x) lm(c(numberInducedMJ / numberTotalMJ)[x] ~ numberTotalMJ[x] - 1)$coefficients)
+slopeNatural <- lapply(indicesNatural, function(x) lm(c(numberInducedMJ)[x] ~ numberTotalMJ[x] - 1)$coefficients)
+slopeSynthetic <- lapply(indicesSynthetic, function(x) lm(c(numberInducedMJ)[x] ~ numberTotalMJ[x] - 1)$coefficients)
+ttestLMMJ_diploid_natural <- t.test(unlist(slopeAttObt), unlist(slopeNatural), paired = FALSE, alternative = "two.sided")
+ttestLMMJ_diploid_synthetic <- t.test(unlist(slopeAttObt), unlist(slopeSynthetic), paired = FALSE, alternative = "two.sided")
+
+
+setwd("~/Documents/University/Master/MScArbeit/Report/")
+@
+
+<<identificationDTGs>>=
+rtDTG <- c(5.55 * 60, 7.75 * 60) ## retention time of DTGs in seconds, include a security range of 0.5 min
+## truncate peaklist to rt of DTGs 
+
+## check pcgroup42 48 1154 114 
+
+MSMS_raw[MSMS_raw[, "precursor"] == "paste here pc group",]
+MSMS_mod[which(MSMS_mod[, "id"] == "paste here pc group"),]
+
+peaklistDTG <- peaklist_mapped[ which(as.numeric(peaklist_mapped[,"rt"]) >= rtDTG[1] & as.numeric(peaklist_mapped[, "rt"]) <= rtDTG[2]), ]
+## Lyciumoside I M+Na+ 653.3497
+lycIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 653.3497))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 653.3497))[1:4],]
+18    3.680693e-03 653.3516 1118.80597  39.9101303  [550][M]+ [M+Na]+ 630.362     109 1009.483641_1121.226976_2195 ## DTG
+307   3.175606e-03 653.3516 1118.80597  39.9101303  [550][M]+ [M+Na]+ 630.362     109    1026.516241_1120.95096_45 ## DTG
+386   4.513535e-03 653.3516 1118.80597  39.9101303  [550][M]+ [M+Na]+ 630.362     109   1031.470899_1121.607472_45 ## DTG
+10381 0.000000e+00 653.3516 1118.80597  39.9101303  [550][M]+ [M+Na]+ 630.362     109  653.3516434_1118.805968_109 ## DTG
+
+## NicotianosideIX  M+Na+ 739.3515
+nicIXindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 739.3515))[2] ##1752
+## NicotianosideX  825.3503
+nicXindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 825.3503))[4] ## 1154_1
+## LyciumosideII  815.4043
+lycIIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 815.4043))[1] ##115
+## NicotianosideXI  901.3991
+nicXIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 901.3991))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 901.3991))[1:4],]
+12612 8.881784e-16 901.4068 1044.463  78.10864     [M+Na]+ 878.415     120   901.406777_1044.462944_120 ## present in MSMS_mod ## no 271.24
+12623 1.267031e-11 901.4068 1044.463  78.10864     [M+Na]+ 878.415     120  903.4145449_1044.230976_120 ## present in MSMS_mod ## no 271.24
+12771 4.161849e-11 901.4068 1044.463  54.72529     [M+Na]+ 878.415     120 902.4113684_1042.403968_2513 ## present in MSMS_mod ## DTG
+12790 5.508705e-12 901.4068 1044.463 100.00000     [M+Na]+ 878.415     120 902.4184088_1045.797992_3283 ## present in MSMS_mod ## no 271.24
+## NicotianosideXII  987.4037
+nicXIIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 987.4037))[2] ##79
+## NicotianosideXIII 1074.4042
+nicXIIIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 1074.4042))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 1074.4042))[1:5],]
+213  7.051642e-05 1074.412 1099.74 63.74526             102   1075.414552_1098.896464_56 ## no 271.24
+777  1.274196e-06 1074.412 1099.74 62.74598             102  1076.418973_1099.739952_102 ## no 271.24
+811  1.465494e-14 1074.412 1099.74 62.74598             102 1075.404548_1099.232488_2284 ## no 271.24
+1179 4.585665e-08 1074.412 1099.74 47.81034             102 1095.383146_1100.705968_2423 ## DTG
+1206 9.578231e-06 1074.412 1099.74 47.81034             102      1095.391127_1101.358_73 ## DTG
+
+## LyciumosideIV  799.4091
+lycIVindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 799.4091))[1] ##87
+## NicotianosideIa  885.4084
+nicIiso1indMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 885.4084))[1] ##114_1
+nicIiso2indMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 885.4084))[3] ##48_1
+## NicotianosideII  971.4074
+nicIIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 971.4074))[1] ##42_1
+## NicotianosideIII  945.4653
+nicIIIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 945.4653))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 945.4653))[1:4],]
+9405  0.000000e+00 945.4704 1083.69  94.216     [M+Na]+ 922.482     123  945.4703568_1083.689968_123 ## present in MSMS_mod ## no 271.24
+13472 3.687890e-04 945.4704 1083.69 100.000     [M+Na]+ 922.482     123 988.5029762_1081.392968_3209 ## no 271.24
+13499 4.613779e-05 945.4704 1083.69  94.216     [M+Na]+ 922.482     123  989.506952_1082.036944_2851 ## present in MSMS_mod ## no 271.24
+13508 1.971224e-05 945.4704 1083.69  94.216     [M+Na]+ 922.482     123 989.5153475_1085.597968_3928 ## no 271.24
+## NicotianosideIV 1031.4645
+nicIVindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 1031.4645))[1] ## 87
+## NicotianosideV 1117.4681
+nicVindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 1117.4681))[1] ## 38_1
+## Attenoside (or DTG956) 961.4601
+attenoindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 961.4601))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 961.4601))[1:2],]
+13050 3.785861e-12 961.4644  996.929  68.85763 [867][M]+ [M+Na]+ 938.476     171   961.4644333_996.928976_171 ## no DTG
+13054 3.853116e-02 959.5774 2181.320 100.00000                              3291 959.5774264_2181.320488_3291 ## no DTG ## to high dm/z
+## DTG1042/Nicotianoside VI 1047.4525
+DTG1042indMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 1047.4525))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 1047.4525))[1:2],]
+587 3.096274e-03 1047.466 1036.690  44.81004 [938][M]+        3442 1047.466066_1036.689968_3442 ## DTG
+600 3.788418e-02 1047.466 1036.690 100.00000 [938][M]+        3442 1047.473278_1038.044992_3182 ## no 271.24
+## NicotianosideVII 1133.4624
+nicVIIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 1133.4624))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 1133.4624))[1:5],]
+1497 3.344880e-12 1133.467 1061.895 54.31944     [M+Na]+ 1110.47     116  1133.466791_1061.895456_116 ## no 271.24
+1503 1.762812e-12 1133.467 1061.895 54.31944     [M+Na]+ 1110.47     116  1134.476656_1061.620456_116 ## no 271.24
+1510 2.486900e-14 1133.467 1061.895 54.31944     [M+Na]+ 1110.47     116  1134.484524_1062.292472_116 ## no 271.24
+1522 8.881784e-15 1133.467 1061.895 54.31944     [M+Na]+ 1110.47     116 1133.472698_1063.210992_2770 ## no 271.24
+1528 1.629930e-02 1133.467 1061.895 81.29460     [M+Na]+ 1110.47     116 1134.467407_1061.293952_2765 ## no 271.24
+## NicotianosideVIII 1219.4619
+nicVIIIindMJ <- order(abs(as.numeric(peaklistDTG[, "mz"]) - 1219.4619))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 1219.4619))[1:5],] ## too high dm/z
+@
+
+<<identificationPhenylpropanoids>>=
+
+## phenylpropanoid pathway
+peaklistPhenylProp <- peaklist_mapped[which(as.numeric(peaklist_mapped[, "rt"]) < 333),]
+
+
+## N-coumaroylputrescine [M+H+]+ 235.143 RT 195.13
+peaklist[order(abs(as.numeric(peaklist[, "mz"]) - 235.143))[1],]
+coumPutindMJ <- order(abs(as.numeric(peaklistPhenylProp[, "mz"]) - 235.143))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 235.143))[1:9],]
+3847 0.000000e+00 235.1149 418.03598 3.612507          [M+H-CH4]+ 250.132       1 237.1225998_420.44296_86 ## no 147.04 ## no 89.15
+6804 0.000000e+00 235.1149 418.03598 3.125774          [M+H-CH4]+ 250.132       1 472.2442911_418.746944_1 ## no 147.04 ## no 89.15
+6845 8.097187e-10 235.1149 418.03598 3.125774          [M+H-CH4]+ 250.132       1 943.4805962_417.609992_1 ## no 147.04 ## no 89.15
+1974 0.000000e+00 235.1148 176.68797 4.866784             [M+Na]+ 212.126       5    249.1222376_178.556_5 ## no 147.04 ## no 89.15
+1990 0.000000e+00 235.1148 176.68797 4.866784             [M+Na]+ 212.126       5 251.1380423_176.760976_5 ## no 147.04 ## no 89.15
+2010 0.000000e+00 235.1148 176.68797 4.866784             [M+Na]+ 212.126       5  502.2736153_176.30896_5 ## no 147.04 ## no 89.15
+2403 0.000000e+00 235.1147 445.11650 4.405993 [60][M]+                        978 308.1961308_445.508976_2 ## no 147.04 ## no 89.15
+2437 1.874056e-13 235.1147 445.11650 2.095381 [60][M]+                        978  470.228995_445.711984_2 ## no 147.04 ## no 89.15
+2471 2.220446e-16 235.1147 445.11650 2.095381 [60][M]+                        978  939.450789_445.491984_2 ## no 147.04 ## no 89.15
+## N-coumaroylspermidine [M+H+]+ 292.2
+## not found only 292.1006 -> dev 0.1
+
+## N',N''-coumaroyl,caffeoylspermidine [M+H+]+ 454.23 RT 263.62
+peaklist[order(abs(as.numeric(peaklist[, "mz"]) - 454.23))[1],]
+coumCaffSperindMJ <- order(abs(as.numeric(peaklistPhenylProp[, "mz"]) - 454.23))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 454.23))[1:7],]
+6790 0.000000e+00 454.2324 417.9255   3.279711     [M+H-H20]+ 471.238       1   472.2442911_418.746944_1 ## no 146.25 ## no 147.04 ## no 163.03
+6832 1.426561e-10 454.2324 417.9255   3.279711     [M+H-H20]+ 471.238       1   943.4805962_417.609992_1 ## no 146.25 ## no 147.04 ## no 163.03
+6875 0.000000e+00 454.2333 388.8170   1.569719                           1037   472.2445026_389.691984_4 ## no 146.25 ## no 147.04 ## no 163.03
+7378 0.000000e+00 454.2334 493.3200 100.000000                            193 454.2333533_493.319952_193 ## no 146.25 ## no 147.04 ## no 163.03
+7390 3.226727e-07 454.2334 493.3200 100.000000                            193    455.236226_495.342_2950 ## no 146.25 ## no 147.04 ## no 163.03
+7380 0.000000e+00 454.2335 507.2920 100.000000         [M+H]+ 453.226     106    454.2334821_507.292_106 ## no 146.25 ## no 147.04 ## no 163.03
+7384 2.220446e-16 454.2336 464.5685 100.000000                           3652 454.2336411_464.56848_3652 ## no 146.25 ## no 147.04 ## no 163.03
+
+## N-caffeoylputrescine [M+H+]+ 251.14 RT RT 108.72
+peaklist[order(abs(as.numeric(peaklist[, "mz"]) - 251.14))[1], ]
+caffPutindMJ <- order(abs(as.numeric(peaklistPhenylProp[, "mz"]) - 251.14))[1] ## 821
+## N-caffeoylspermidine [M+H+]+ 308.2 RT 246.96
+peaklist[order(abs(as.numeric(peaklist[, "mz"]) - 308.2))[2], ]
+caffSperindMJ <- order(abs(as.numeric(peaklistPhenylProp[, "mz"]) - 308.2))[1:10] ## not found 
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 308.2))[1:7],]
+2352 1.863115e-02 308.1962 393.8720  76.07373 [119][M]+         [M+H]+ 307.191      14    355.1020798_393.97148_14 ## 163.03 present ## no 146.25
+2372 1.287293e-03 308.1962 393.8720  76.07373 [119][M]+         [M+H]+ 307.191      14    377.0844229_393.85496_14 ## 163.03 present ## no 146.25
+2383 2.220446e-16 308.1962 393.8720  30.93133 [119][M]+         [M+H]+ 307.191      14   470.2287831_393.866456_14 ## no 163.03 present ## no 146.25
+2397 0.000000e+00 308.1961 445.5090  62.22514 [118][M]+         [M+H+NH3]+ 290.159       2    308.1961308_445.508976_2 ## 163.03 present ## no 146.25
+2430 1.092459e-12 308.1961 445.5090  29.59274 [118][M]+         [M+H+NH3]+ 290.159       2     470.228995_445.711984_2 ## 163.03 present ## no 146.25
+2466 7.327472e-14 308.1961 445.5090  29.59274 [118][M]+         [M+H+NH3]+ 290.159       2     939.450789_445.491984_2 ## 163.03 present ## no 146.25
+2332 6.305356e-11 308.1961 423.6095  87.23752                   [M+H]+ 307.191       8     308.1960639_423.60948_8 ## 163.03 present ## no 146.25
+2341 6.505907e-14 308.1961 423.6095  32.09472                   [M+H]+ 307.191       8     470.2287116_423.60948_8 ## 163.03 present ## no 146.25
+7463 8.940230e-04 308.1961 423.6095  34.92345                   [M+H]+ 307.191       8 468.2134552_425.810976_3750 ## 163.03 present ## no 146.25
+7381 8.275531e-04 308.1960 506.2490  31.78098                   2685     454.2334821_507.292_106 ## no 163.03 ## no 146.25
+2217 1.148945e-06 308.1960 102.8450 100.00000 [120][M]+ [M+K+NH3]+ 252.206 [M+Na+NH3]+ 268.18 [M+H+NH3]+ 290.162      21   308.1959895_102.844992_21 ## 163.03 present ## no 146.25
+6604 0.000000e+00 308.1959  77.3200 100.00000                   1007      308.1959011_77.32_1007 ## no 163.03 ## no 149.25
+6784 2.220446e-15 308.1959  77.3200 100.00000                   1007  309.1991679_77.706976_1008 ## no 163.09 ## no 149.25
+7722 0.000000e+00 308.1956 530.8070  13.84268                   2903  485.247569_530.438456_2894 ## no 163.03 ## no 149.25
+
+## N-feruloylputrescine [M+H+]+ 265.153 Rt 192.05
+peaklist[order(abs(as.numeric(peaklist[, "mz"]) - 265.153))[1], ]
+ferPutindMJ <- order(abs(as.numeric(peaklistPhenylProp[, "mz"]) - 265.153))[1:10] ## not found
+MSMS_raw[order( abs(MSMS_raw[, "mz"] - 365.153))[1:7],] ## not found
+
+## N-feruloyl-spermidine [M+H+]+ 322.212 RT 104.63
+peaklist[order(abs(as.numeric(peaklist[, "mz"]) - 322.212))[1], ]
+ferSperindMJ <- order(abs(as.numeric(peaklistPhenylProp[, "mz"]) - 322.212))[1] ## 5274
+## N'-N''-dicaffeoyl -spermidine [M+H+]+ 470.23 RT 247.434
+peaklist[order(abs(as.numeric(peaklist[, "mz"]) - 470.23))[6], ]
+diCaffSperindMJ <- order(abs(as.numeric(peaklistPhenylProp[, "mz"]) - 470.23))[1] ## rt180 73
+## N'-N''-diferuloyl-spermidine [M+H+]+ 498.260, RT 289.12
+DiFerSperindMJ <- order(abs(mzPhenolamidMJ - 498.260))[1] 
+## N'-N''-dihydrated-diferuloyl-spermidine [M+H+]+ 502.25 RT 243.1352
+diHydrDiFerSperindMJ <- order(abs(mzPhenolamidMJ - 502.25))[1] 
+## unknown conjugate [M+H+]+ 411.2012, rt = 211.52897
+unknownConjindMJ <- order(abs(mzPhenolamidMJ - 410.194 - 1.0072))[1]
+## N'-N''-caffeoyl,feruloyl spermidine 484.245 RT 265.6723
+caffFerSperindMJ <- order(abs(mzPhenolamidMJ - 484.245))[1] 
+## N-feruloyl spermidine isomer 2 [M+H+]+ 322.212 Rt 149.2268
+ferSper2indMJ <- order(abs(mzPhenolamidMJ - 322.212))[2] 
+## caffeoyl putrescine isomer 2 [M+H+]+ 251.138 rt: 144.1216
+caffPut2indMJ <- order(abs(mzPhenolamidMJ - 251.14))[2] ## 1 or 2?
+## O -Coumaroylquinic acid isomer 1 [M+H+]+  338.102 RT: 249.477
+coumQuinic1indMJ <- order(abs(mzPhenolamidMJ - 338.102 - 1.007))[1] ## 1 or 2?
+## 3O -Coumaroylquinic acid isomer 2 [M+H+]+  338.102 RT: 269.477
+coumQuinic2indMJ <- order(abs(mzPhenolamidMJ - 338.102 - 1.007))[2] ## 1 or 2?
+## O-caffeoylquinic acid isomer 1 [M+H+]+ 355.1014 rt 176.5318
+caffQuinic1indMJ <- order(abs(mzPhenolamidMJ - 355.1014))[1] ## 1 or 2 or 3
+## O-caffeoylquinic acid isomer 2 [M+H+]+ 355.1014 rt 216.56
+caffQuinic2indMJ <- order(abs(mzPhenolamidMJ - 355.1014))[2] ## 1 or 2 or 3
+## O-caffeoylquinic acid isomer 3 [M+H+]+ 355.1014 rt 241.3897
+caffQuinic3indMJ <- order(abs(mzPhenolamidMJ - 355.1014))[3] ## 1 or 2 or 3
+
+
+@
+
