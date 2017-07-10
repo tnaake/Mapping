@@ -635,6 +635,45 @@ for (i in 1:length(mapping_l)) {
     mapping_l[[i]] <- entry
     }
 }
+
+## manually removal of features 
+## several features were mapped to the same pcgroup from profiling
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2"]], c("mz", "rt", "id")]
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3"]], c("mz", "rt", "id")]
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["5"]], c("mz", "rt", "id")] ## take 308.._99.._6? ## see 9
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["9"]], c("mz", "rt", "id")] ## take 308.._99.._6! 
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["21"]], c("mz", "rt", "id")] ## take 715..2176..3373
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["38"]], c("mz", "rt", "id")]
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["40"]], c("mz", "rt", "id")] ## share 247.08, 169.04, remove at least 247.._2064_172
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["42"]], c("mz", "rt", "id")] ## 683.._1159_88 seems to be part of 987_1177_30, 987 seems to be DTG, 971:1215_287 seems to be DTG
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["47"]], c("mz", "rt", "id")] ## remove 205.._2161_241
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["48"]], c("mz", "rt", "id")] ## remove 271.24_1146_31
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["50"]], c("mz", "rt", "id")] ## two singletons
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["51"]], c("mz", "rt", "id")] ## remove at least 163.._218..3174
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["55"]], c("mz", "rt", "id")] ## remove singelton 116.._72_1977, remove singleton 127.._72_24, 365.._71_15 seems to be part of 582..71.._15, 149.._73.._16 seems to be part of 365.._71.._15
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["56"]], c("mz", "rt", "id")] ## 205.._2256_89 seems to be part of 738_2256_89, remove 205.._2256_89
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["65"]], c("mz", "rt", "id")] ## 248_1704_3638 seems to be part of 710_1828_44, but high drt
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["66"]], c("mz", "rt", "id")] ## 205.._2012_121 seems to be part of 717.._2012_2830, remove 205_2012_121
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["70"]], c("mz", "rt", "id")] ## share only one fragment (205.07) -> keep both
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["71"]], c("mz", "rt", "id")] ## -> keep both
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["88"]], c("mz", "rt", "id")] ## 205.._1791_113 seems to be part of 673.._1792.._2731, remove 205.._1791_113, 682_1773_48 and 673.._1702_2731 share some fragments
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["94"]], c("mz", "rt", "id")] ## remove at least 163_77_3 (seems to be part of 277_79_208)
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["105"]], c("mz", "rt", "id")] ## 497.._1121_2188 and 497_1180_122 seem to be related, 826_1218_3842 seems to be DTG
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["114"]], c("mz", "rt", "id")] ## remove singelton 907.._1145_31
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["142"]], c("mz", "rt", "id")] ## remove 112.._68_110 (singleton and seems to be part of 280.._67_26)
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["148"]], c("mz", "rt", "id")] ## 274.._67.._26 seems to be part of 544_66_2369 ->> remove 274_67_26; 336.._66.._64 seems to be part of 544_66_2369 -> remove 336.._66.._64; keep 280.._67_26 and 544.._66.._2369
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["159"]], c("mz", "rt", "id")] ## 248..._1704.._3638 seems to be part of 696.._1703.._19, remove 248..._1704.._3638
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["165"]], c("mz", "rt", "id")] ## high drt for these four features
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["174"]], c("mz", "rt", "id")]
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["285"]], c("mz", "rt", "id")] ## share only one fragment (247.08) high drt
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["839"]], c("mz", "rt", "id")] ## 149.._73.._16 seems to be part of 203.._71.._15, remove 149.._73.._16
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1154"]], c("mz", "rt", "id")] ## 461.._1178..122 seems to be part of 497.._1177_2033, remove 461_1178_122, keep 497.._1177_2033 (DTG) and 827.._1190_60
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1673"]], c("mz", "rt", "id")] ## 148.._71.._1826 seems to be part of 365.._71.._15, remove 148.._71_1826, 219.._70_1876 seems to be part of 365.._71.._15/482.._70.._15, remove 219.._70_1876
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3270"]], c("mz", "rt", "id")] ## 381.._69.._17 seems to be related to 365.._71.._15 in "1673", 482.._70.._15 is also present in "1673"
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["4826"]], c("mz", "rt", "id")] ## remove 799..2480..2810?
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["5017"]], c("mz", "rt", "id")] ## singeton 792.2528..2135, remove?
+MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["5270"]], c("mz", "rt", "id")] ## keep both, even though they share one fragment (177.05)
+
 ## write to new peaklist: peaklist_mapped
 peaklist_mapped <- matrix(ncol = dim(peaklist)[2], nrow = 0); colnames(peaklist_mapped) <- colnames(peaklist)
 for (i in names(mapping_l)) {
