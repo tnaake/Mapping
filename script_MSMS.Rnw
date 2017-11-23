@@ -735,102 +735,6 @@ mapping_l <- mapping_l[!names(mapping_l) == "5529"] ## remove, since same as 74 
 mapping_l <- mapping_l[!names(mapping_l) == "5697"] ## remove since same as 3946 / "903.4145449_1044.230976_120"
 mapping_l <- mapping_l[!names(mapping_l) == "5646"] ## remove as same as 2912 / "989.506952_1082.036944_2851" 
 
-## manually removal of features 
-## several features were mapped to the same pcgroup from profiling
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2"]], c("mz", "rt", "id")]
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3"]], c("mz", "rt", "id")]
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["5"]], c("mz", "rt", "id")] ## take 308.._99.._6? ## see 9
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["6"]], c("mz", "rt", "id")]
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["9"]], c("mz", "rt", "id")] ## take 308.._99.._6! 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["11"]], c("mz", "rt", "id")]
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["21"]], c("mz", "rt", "id")] ## take 715..2176..3373
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["36"]], c("mz", "rt", "id")]
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["38"]], c("mz", "rt", "id")]
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["40"]], c("mz", "rt", "id")] ## share 247.08, 169.04, remove at least 247.._2064_172
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["42"]], c("mz", "rt", "id")] ## 683.._1159_88 seems to be part of 987_1177_30, 987 seems to be DTG, 971:1215_287 seems to be DTG
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["47"]], c("mz", "rt", "id")] ## remove 205.._2161_241
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["48"]], c("mz", "rt", "id")] ## remove 271.24_1146_31
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["50"]], c("mz", "rt", "id")] ## two singletons
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["51"]], c("mz", "rt", "id")] ## remove at least 163.._218..3174
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["55"]], c("mz", "rt", "id")] ## remove singelton 116.._72_1977, remove singleton 127.._72_24, 365.._71_15 seems to be part of 582..71.._15, 149.._73.._16 seems to be part of 365.._71.._15
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["56"]], c("mz", "rt", "id")] ## 205.._2256_89 seems to be part of 738_2256_89, remove 205.._2256_89
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["57"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["65"]], c("mz", "rt", "id")] ## 248_1704_3638 seems to be part of 710_1828_44, but high drt
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["66"]], c("mz", "rt", "id")] ## 205.._2012_121 seems to be part of 717.._2012_2830, remove 205_2012_121
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["70"]], c("mz", "rt", "id")] ## share only one fragment (205.07) -> keep both
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["71"]], c("mz", "rt", "id")] ## -> keep both
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["73"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["74"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["79"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["85"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["87"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["88"]], c("mz", "rt", "id")] ## 205.._1791_113 seems to be part of 673.._1792.._2731, remove 205.._1791_113, 682_1773_48 and 673.._1702_2731 share some fragments
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["94"]], c("mz", "rt", "id")] ## remove at least 163_77_3 (seems to be part of 277_79_208)
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["105"]], c("mz", "rt", "id")] ## 497.._1121_2188 and 497_1180_122 seem to be related, 826_1218_3842 seems to be DTG
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["114"]], c("mz", "rt", "id")] ## remove singelton 907.._1145_31
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["115"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["117"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["124"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["140"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["142"]], c("mz", "rt", "id")] ## remove 112.._68_110 (singleton and seems to be part of 280.._67_26)
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["144"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["148"]], c("mz", "rt", "id")] ## 274.._67.._26 seems to be part of 544_66_2369 ->> remove 274_67_26; 336.._66.._64 seems to be part of 544_66_2369 -> remove 336.._66.._64; keep 280.._67_26 and 544.._66.._2369
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["149"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["159"]], c("mz", "rt", "id")] ## 248..._1704.._3638 seems to be part of 696.._1703.._19, remove 248..._1704.._3638
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["165"]], c("mz", "rt", "id")] ## high drt for these four features
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["174"]], c("mz", "rt", "id")]
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["196"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["218"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["239"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["257"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["285"]], c("mz", "rt", "id")] ## share only one fragment (247.08) high drt
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["325"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["329"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["337"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["367"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["647"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["725"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["753"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["821"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["839"]], c("mz", "rt", "id")] ## 149.._73.._16 seems to be part of 203.._71.._15, remove 149.._73.._16
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["868"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["869"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1154"]], c("mz", "rt", "id")] ## 461.._1178..122 seems to be part of 497.._1177_2033, remove 461_1178_122, keep 497.._1177_2033 (DTG) and 827.._1190_60
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1287"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1630"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1673"]], c("mz", "rt", "id")] ## 148.._71.._1826 seems to be part of 365.._71.._15, remove 148.._71_1826, 219.._70_1876 seems to be part of 365.._71.._15/482.._70.._15, remove 219.._70_1876
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1676"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1683"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1752"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1973"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1981"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["1997"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2005"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2041"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2689"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2707"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2719"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2834"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["2912"]], c("mz", "rt", "id")]
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3012"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3039"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3047"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3078"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3080"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3108"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3112"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3114"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3204"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3224"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3226"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3270"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3342"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3397"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["3946"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["4059"]], c("mz", "rt", "id")] 
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["4826"]], c("mz", "rt", "id")] ## remove 799..2480..2810?
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["5017"]], c("mz", "rt", "id")] ## singeton 792.2528..2135, remove?
-MSMS_mod[MSMS_mod[, "id"] %in% mapping_l[["5270"]], c("mz", "rt", "id")] ## keep both, even though they share one fragment (177.05)
 
 ## write to new peaklist: peaklist_mapped
 peaklist_mapped <- matrix(ncol = dim(peaklist)[2], nrow = 0); colnames(peaklist_mapped) <- colnames(peaklist)
@@ -861,62 +765,15 @@ for (i in names(mapping_l)) {
 MSMS_mod <- MSMS_mod[MSMS_mod[, "id"] %in% unlist(mapping_l),]
 
 
-MSMS_mod[which(MSMS_mod[, "att0"] == 0 & MSMS_mod[, "obt0"] == 0 & MSMS_mod[, "att72WOS"] == 0 & MSMS_mod[, "obt72WOS"] == 0 & MSMS_mod[, "att72MJ"] == 0 & MSMS_mod[, "obt72MJ"] == 0 ), c("mz", "rt", "intensity", "id", "att0", "obt0", "clev0", "quad0", "x10270", "x571260", "att72WOS", 
+write.table(MSMS_mod[which(MSMS_mod[, "att0"] == 0 & MSMS_mod[, "obt0"] == 0 & MSMS_mod[, "att72WOS"] == 0 & MSMS_mod[, "obt72WOS"] == 0 & MSMS_mod[, "att72MJ"] == 0 & MSMS_mod[, "obt72MJ"] == 0 ), c("mz", "rt", "intensity", "id", "att0", "obt0", "clev0", "quad0", "x10270", "x571260", "att72WOS", 
          "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS", "att72MJ", "obt72MJ", "clev72MJ",
-         "quad72MJ", "x102772MJ", "x5712672MJ")]
+         "quad72MJ", "x102772MJ", "x5712672MJ")], file = "metabolic_innovations.lst", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
-MSMS_mod[MSMS_mod[ ,"id"] == "127.0392579_1594.703968_25", ] ## 127.0392579_1594.703968_25 quad0
-MSMS_mod[MSMS_mod[ ,"id"] == "163.0386309_218.982976_3174", ]## 163.0386309_218.982976_3174 clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "470.2287116_423.60948_8", ] ## 470.2287116_423.60948_8 clev72MJ x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "470.2287831_393.866456_14", ] ## 470.2287831_393.866456_14 clev72MJ x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "470.228995_445.711984_2", ] ## 470.228995_445.711984_2 clev72MJ x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "715.3165743_1827.351984_44", ] ## 715.3165743_1827.351984_44 clev72WOS clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "205.0701841_1670.496992_141", ] ## 715.3165743_1827.351984_44 ## clev72WOS clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "631.2597299_1309.32096_42", ] ## 631.2597299_1309.32096_42 clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "223.9881918_62.172944_1206", ] ## 223.9881918_62.172944_1206   
-MSMS_mod[MSMS_mod[ ,"id"] == "715.3170157_1844.527984_137", ] ## 715.3170157_1844.527984_137 clev72WOS clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "263.0160941_82.096992_3492", ] ## 263.0160941_82.096992_3492 quad72WOS 
-MSMS_mod[MSMS_mod[ ,"id"] == "907.3897549_1145.795472_31", ] ## 907.3897549_1145.795472_31 quad72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "885.4119913_1144.533496_69", ] ## 885.4119913_1144.533496_69 clev72MJ quad72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "341.1954553_1942.987448_4132", ] ## 341.1954553_1942.987448_4132 clev72WOS clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "355.2812701_2371.359952_307", ] ## 355.2812701_2371.359952_307 quad72MJ
-
-MSMS_mod[MSMS_mod[ ,"id"] == "389.1600222_348.017472_2865", ] ## 389.1600222_348.017472_2865 ## x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "411.1139588_1039.43396_2179", ] ## 411.1139588_1039.43396_2179 ## quad72MJ --> DTG?
-MSMS_mod[MSMS_mod[ ,"id"] == "457.3496867_2527.40848_2105", ] ## 457.3496867_2527.40848_2105 
-MSMS_mod[MSMS_mod[ ,"id"] == "470.2292672_474.074984_2988", ] ## 470.2292672_474.074984_2988 ## clev72MJ x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "488.2395777_293.97496_2953", ] ## 488.2395777_293.97496_2953 ## clev72MJ x102772MJ x5712672MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "497.1147606_1121.87796_2188", ] ## 497.1147606_1121.87796_2188 ## clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "589.8289581_62.11848_1531", ] ## 589.8289581_62.11848_1531 ## x5712672MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "613.482807_2501.44496_2892", ] ## 613.482807_2501.44496_2892  ## quad72MJ x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "613.4830352_2152.155464_3276", ] ## 613.4830352_2152.155464_3276
-MSMS_mod[MSMS_mod[ ,"id"] == "613.4830771_2558.736_2679", ] ## 613.4830771_2558.736_2679 ## quad72MJ x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "613.4830781_2531.185984_2123", ] ## 613.4830781_2531.185984_2123 ## quad72MJ x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "659.2272162_2616.72348_111", ] ## 659.2272162_2616.72348_111 ## x102772MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "631.2597645_1330.040944_180", ] ## 631.2597645_1330.040944_180 ## clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "645.2751122_1427.545488_74", ] ## 645.2751122_1427.545488_74   
-MSMS_mod[MSMS_mod[ ,"id"] == "645.2757282_1450.876984_3811", ] ## 645.2757282_1450.876984_3811
-MSMS_mod[MSMS_mod[ ,"id"] == "683.3331589_1593.711976_299", ] ## 683.3331589_1593.711976_299 ## clev72WOS
-MSMS_mod[MSMS_mod[ ,"id"] == "739.3536942_1158.06496_2545", ] ## 739.3536942_1158.06496_2545 ## x102772MJ x5712672MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "758.5576373_2580.415984_3655", ] ## 758.5576373_2580.415984_3655
-MSMS_mod[MSMS_mod[ ,"id"] == "758.5599477_2521.877968_2131", ] ## 758.5599477_2521.877968_2131 
-MSMS_mod[MSMS_mod[ ,"id"] == "758.5606057_2547.507968_3121", ] ## 758.5606057_2547.507968_3121 
-MSMS_mod[MSMS_mod[ ,"id"] == "758.5613199_2499.50696_207", ] ## 758.5613199_2499.50696_207  
-MSMS_mod[MSMS_mod[ ,"id"] == "758.5649767_2597.742976_3862", ] ## 758.5649767_2597.742976_3862
-MSMS_mod[MSMS_mod[ ,"id"] == "780.554797_2634.042992_368", ] ## 780.554797_2634.042992_368  
-MSMS_mod[MSMS_mod[ ,"id"] == "775.5241672_2538.101968_33", ] ## 775.5241672_2538.101968_33  ## clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "780.5497593_2679.234472_4414", ] ## 780.5497593_2679.234472_4414
-MSMS_mod[MSMS_mod[ ,"id"] == "780.5544525_2599.237472_3863", ] ## 780.5544525_2599.237472_3863 
-MSMS_mod[MSMS_mod[ ,"id"] == "780.5546838_2658.28796_4155", ] ## 780.5546838_2658.28796_4155 
-MSMS_mod[MSMS_mod[ ,"id"] == "798.5222853_2491.077968_3392", ] ## 798.5222853_2491.077968_3392 quad72WOS
-MSMS_mod[MSMS_mod[ ,"id"] == "799.5110101_2467.589968_4003", ] ## 799.5110101_2467.589968_4003 x102772MJ x5712672MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "825.3531956_1217.079448_3277", ] ## 825.3531956_1217.079448_3277 clev72MJ --> DTG?
-MSMS_mod[MSMS_mod[ ,"id"] == "825.3565633_1187.377464_61", ] ## 825.3565633_1187.377464_61 clev72MJ
-MSMS_mod[MSMS_mod[ ,"id"] == "902.4113684_1042.403968_2513", ] ## 902.4113684_1042.403968_2513 clev72MJ quad72MJ --> DTG?
 @
 
 
 <<barplot>>=
+setwd("/home/thomas/Documents/Publikationen/paper_allotetraploid/")
 ## how many metabolites are found in each species?
 MSMS_mod_i <- MSMS_mod[, c("mapped1WOS", "mapped2WOS", "mapped3WOS", "mappedManualWOS")]
 MSMS_mod_i <- matrix(as.numeric(c(as.character(MSMS_mod_i[,1]), as.character(MSMS_mod_i[,2]), as.character(MSMS_mod_i[,3]), as.character(MSMS_mod_i[,4]))), nrow = nrow(MSMS_mod_i))
@@ -928,10 +785,12 @@ uniquePrecursor <- unique(MSMS_mod[, "id"])
 indsMSMS <- match(uniquePrecursor, MSMS_mod[, "id"])
 
 ## how many metabolites are found in each species?
-apply(data.matrix(MSMS_mod[indsMSMS, c("att0", "obt0","clev0","quad0","x10270","x571260")]), 2, sum)
-apply(data.matrix(MSMS_mod[indsMSMS, c("att72WOS", "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS")]), 2, sum)
-apply(data.matrix(MSMS_mod[indsMSMS, c("att72MJ", "obt72MJ", "clev72MJ", "quad72MJ", "x102772MJ", "x5712672MJ")]), 2, sum)
-
+write.table(
+rbind(
+"control" = apply(data.matrix(MSMS_mod[indsMSMS, c("att0", "obt0","clev0","quad0","x10270","x571260")]), 2, sum),
+"WOS72" = apply(data.matrix(MSMS_mod[indsMSMS, c("att72WOS", "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS")]), 2, sum),
+"MJ72" = apply(data.matrix(MSMS_mod[indsMSMS, c("att72MJ", "obt72MJ", "clev72MJ", "quad72MJ", "x102772MJ", "x5712672MJ")]), 2, sum)
+), file = "number_mapped_metabolites.txt", sep = "\t", row.names = T, col.names = T, quote = FALSE)
 
 ## get pc_group for C, WOS and MeJA
 ## C
@@ -979,7 +838,7 @@ AttObtClevOverlap0h <- calculate.overlap(list("N. attenuata" = att0,
                                               "N. clevelandii" = clev0,
                                               "N. quadrivalvis" = quad0
                                              ))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att0, "N. obt" = obt0, "N.clev" = clev0, "N. quad" = quad0), filename = NULL) )
+pdf("N_clev_control_venn.pdf"); grid.draw(venn.diagram(list("N. att" = att0, "N. obt" = obt0, "N.clev" = clev0, "N. quad" = quad0), filename = NULL) ); dev.off()
 ClevNaNo0 <- length(AttObtClevOverlap0h$a6) + length(AttObtClevOverlap0h$a12) ## shared with Na, No
 ClevNa0 <- length(AttObtClevOverlap0h$a5) + length(AttObtClevOverlap0h$a4) ## shared exclusively with Na
 ClevNo0 <- length(AttObtClevOverlap0h$a7) + length(AttObtClevOverlap0h$a13) ## shared with No
@@ -989,7 +848,7 @@ AttObtClevOverlap72h <- calculate.overlap(list("N. attenuata" = att72WOS,
                                                "N. obtusifolia" = obt72WOS,
                                                "N. clevelandii" = clev72WOS,
                                                "N. quadrivalvis" = quad72WOS))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att72WOS, "N. obt" = obt72WOS, "N.clev" = clev72WOS, "N. quad" = quad72WOS), filename = NULL) )
+pdf("N_clev_WOS72_venn.pdf"); grid.draw(venn.diagram(list("N. att" = att72WOS, "N. obt" = obt72WOS, "N.clev" = clev72WOS, "N. quad" = quad72WOS), filename = NULL) ); dev.off()
 ClevNaNo72 <- length(AttObtClevOverlap72h$a6) + length(AttObtClevOverlap72h$a12) ## shared with Na, No
 ClevNa72 <- length(AttObtClevOverlap72h$a5) + length(AttObtClevOverlap72h$a4) ## shared with Na
 ClevNo72 <- length(AttObtClevOverlap72h$a7) + length(AttObtClevOverlap72h$a13) ## shared with No
@@ -999,7 +858,7 @@ AttObtClevOverlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ,
                                                  "N. obtusifolia" = obt72MJ, 
                                                  "N. clevelandii" = clev72MJ,
                                                  "N. quadrivalvis" = quad72MJ)) 
-dev.off(); grid.draw(venn.diagram(list("N. att" = att72MJ, "N. obt" = obt72MJ, "N.clev" = clev72MJ, "N. quad" = quad72MJ), filename = NULL) )
+pdf("N_clev_MJ72_venn.pdf");  grid.draw(venn.diagram(list("N. att" = att72MJ, "N. obt" = obt72MJ, "N.clev" = clev72MJ, "N. quad" = quad72MJ), filename = NULL) ); dev.off()
 ClevNaNo72MJ <- length(AttObtClevOverlap72hMJ$a6) + length(AttObtClevOverlap72hMJ$a12) ## shared with Na, No 
 ClevNa72MJ <- length(AttObtClevOverlap72hMJ$a5) + length(AttObtClevOverlap72hMJ$a4) ## shared with Na 
 ClevNo72MJ <- length(AttObtClevOverlap72hMJ$a7) + length(AttObtClevOverlap72hMJ$a13) ## shared with No 
@@ -1011,7 +870,7 @@ AttObtQuadOverlap0h <- calculate.overlap(list("N. attenuata" = att0,
                                               "N. obtusifolia" = obt0,
                                               "N. quadrivalvis" = quad0,
                                               "N. clevelandii" = clev0))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att0, "N. obt" = obt0, "N.clev" = clev0, "N. quad" = quad0), filename = NULL) )
+pdf("N_quad_control_venn.pdf"); grid.draw(venn.diagram(list("N. att" = att0, "N. obt" = obt0, "N.clev" = clev0, "N. quad" = quad0), filename = NULL) ); dev.off()
 QuadNaNo0 <- length(AttObtQuadOverlap0h$a6) + length(AttObtQuadOverlap0h$a12) ## shared with Na, No
 QuadNa0 <- length(AttObtQuadOverlap0h$a5) + length(AttObtQuadOverlap0h$a4) ## shared with Na
 QuadNo0 <- length(AttObtQuadOverlap0h$a7) + length(AttObtQuadOverlap0h$a13) ## shared with No
@@ -1021,7 +880,7 @@ AttObtQuadOverlap72h <- calculate.overlap(list("N. attenuata" = att72WOS,
                                                "N. obtusifolia" = obt72WOS,
                                                "N. quadrivalvis" = quad72WOS,
                                                 "N. clevelandii" = clev72WOS))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att72WOS, "N. obt" = obt72WOS, "N.clev" = clev72WOS, "N. quad" = quad72WOS), filename = NULL) )
+pdf("N_quad_WOS72_venn.pdf"); grid.draw(venn.diagram(list("N. att" = att72WOS, "N. obt" = obt72WOS, "N.clev" = clev72WOS, "N. quad" = quad72WOS), filename = NULL) ); dev.off()
 QuadNaNo72 <- length(AttObtQuadOverlap72h$a6) + length(AttObtQuadOverlap72h$a12) ## shared with Na, No
 QuadNa72 <- length(AttObtQuadOverlap72h$a4) + length(AttObtQuadOverlap72h$a5) ## shared with Na
 QuadNo72 <- length(AttObtQuadOverlap72h$a7) + length(AttObtQuadOverlap72h$a13) ## shared with No
@@ -1031,7 +890,7 @@ AttObtQuadOverlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ,
                                                  "N. obtusifolia" = obt72MJ,
                                                  "N. quadrivalvis" = quad72MJ,
                                                  "N. clevelandii" = clev72MJ))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att72MJ, "N. obt" = obt72MJ, "N.clev" = clev72MJ, "N. quad" = quad72MJ), filename = NULL) )
+pdf("N_quad_MJ72_venn.pdf"); grid.draw(venn.diagram(list("N. att" = att72MJ, "N. obt" = obt72MJ, "N.clev" = clev72MJ, "N. quad" = quad72MJ), filename = NULL) ); dev.off()
 QuadNaNo72MJ <- length(AttObtQuadOverlap72hMJ$a6) +  length(AttObtQuadOverlap72hMJ$a12) ## shared with Na, No
 QuadNa72MJ <- length(AttObtQuadOverlap72hMJ$a4)+  length(AttObtQuadOverlap72hMJ$a5)  ## shared with Na
 QuadNo72MJ <- length(AttObtQuadOverlap72hMJ$a7) +  length(AttObtQuadOverlap72hMJ$a13) ## shared with No
@@ -1043,7 +902,7 @@ AttObtX1027Overlap0h <- calculate.overlap(list("N. attenuata" = att0,
                                                "N. obtusifolia" = obt0,
                                                "N. x 1027" = x10270, 
                                                "N. x 57126" = x571260))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att0, "N. obt" = obt0, "N.x1027" = x10270, "N. x57126" = x571260), filename = NULL) )
+pdf("N_x1027_control_venn.pdf"); grid.draw(venn.diagram(list("N. att" = att0, "N. obt" = obt0, "N.x1027" = x10270, "N. x57126" = x571260), filename = NULL) ); dev.off()
 X1027NaNo0 <- length(AttObtX1027Overlap0h$a6) + length(AttObtX1027Overlap0h$a12) ## shared with Na, No
 X1027Na0 <- length(AttObtX1027Overlap0h$a4) + length(AttObtX1027Overlap0h$a5 )## shared with Na
 X1027No0 <- length(AttObtX1027Overlap0h$a7) + length(AttObtX1027Overlap0h$a13)## shared with No
@@ -1053,7 +912,7 @@ AttObtX1027Overlap72h <- calculate.overlap(list("N. attenuata" = att72WOS,
                                                 "N. obtusifolia" = obt72WOS,
                                                 "N. x 1027" = x102772WOS,
                                                 "N. x 57126" = x5712672WOS))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att72WOS, "N. obt" = obt72WOS, "N.x1027" = x102772WOS, "N. x57126" = x5712672WOS), filename = NULL) )
+pdf("N_x1027_WOS72_venn.pdf");  grid.draw(venn.diagram(list("N. att" = att72WOS, "N. obt" = obt72WOS, "N.x1027" = x102772WOS, "N. x57126" = x5712672WOS), filename = NULL) ); dev.off()
 X1027NaNo72 <- length(AttObtX1027Overlap72h$a6) + length(AttObtX1027Overlap72h$a12) ## shared with Na, No
 X1027Na72 <- length(AttObtX1027Overlap72h$a4) + length(AttObtX1027Overlap72h$a5) ## shared with Na
 X1027No72 <- length(AttObtX1027Overlap72h$a7) + length(AttObtX1027Overlap72h$a13)  ## shared with No
@@ -1063,7 +922,7 @@ AttObtX1027Overlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ,
                                                   "N. obtusifolia" = obt72MJ,
                                                   "N. x 1027" = x102772MJ,
                                                   "N. x 57126" = x5712672MJ))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att72MJ, "N. obt" = obt72MJ, "N.x1027" = x102772MJ, "N. x57126" = x5712672MJ), filename = NULL) )
+pdf("N_x1027_MJ72_venn.pdf");  grid.draw(venn.diagram(list("N. att" = att72MJ, "N. obt" = obt72MJ, "N.x1027" = x102772MJ, "N. x57126" = x5712672MJ), filename = NULL) ); dev.off()
 X1027NaNo72MJ <- length(AttObtX1027Overlap72hMJ$a6) + length(AttObtX1027Overlap72hMJ$a12) ## shared with Na, No
 X1027Na72MJ <- length(AttObtX1027Overlap72hMJ$a4) + length(AttObtX1027Overlap72hMJ$a5) ## shared with Na
 X1027No72MJ <- length(AttObtX1027Overlap72hMJ$a7) + length(AttObtX1027Overlap72hMJ$a13) ## shared with No
@@ -1075,7 +934,7 @@ AttObtX57126Overlap0h <- calculate.overlap(list("N. attenuata" = att0,
                                                 "N. obtusifolia" = obt0,
                                                 "N. x 57126" = x571260,
                                                 "N. x 1027" = x10270))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att0, "N. obt" = obt0, "N.x1027" = x10270, "N. x57126" = x571260), filename = NULL) )
+pdf("N_x57126_control_venn.pdf"); grid.draw(venn.diagram(list("N. att" = att0, "N. obt" = obt0, "N.x1027" = x10270, "N. x57126" = x571260), filename = NULL) ); dev.off()
 X57126NaNo0 <- length(AttObtX57126Overlap0h$a6) + length(AttObtX57126Overlap0h$a12) ## shared with Na, No
 X57126Na0 <- length(AttObtX57126Overlap0h$a4) + length(AttObtX57126Overlap0h$a5)## shared with Na
 X57126No0 <- length(AttObtX57126Overlap0h$a7) + length(AttObtX57126Overlap0h$a13) ## shared with No
@@ -1085,7 +944,7 @@ AttObtX57126Overlap72h <- calculate.overlap(list("N. attenuata" = att72WOS,
                                                  "N. obtusifolia" = obt72WOS,
                                                  "N. x 57126" = x5712672WOS,
                                                  "N. x 1027" = x102772WOS))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att72WOS, "N. obt" = obt72WOS, "N.x1027" = x102772WOS, "N. x57126" = x5712672WOS), filename = NULL) )
+pdf("N_x57126_WOS72_venn.pdf"); grid.draw(venn.diagram(list("N. att" = att72WOS, "N. obt" = obt72WOS, "N.x1027" = x102772WOS, "N. x57126" = x5712672WOS), filename = NULL) ); dev.off()
 X57126NaNo72 <- length(AttObtX57126Overlap72h$a6) + length(AttObtX57126Overlap72h$a12) ## shared with Na, No
 X57126Na72 <- length(AttObtX57126Overlap72h$a4) + length(AttObtX57126Overlap72h$a5)  ## shared with Na
 X57126No72 <- length(AttObtX57126Overlap72h$a7) + length(AttObtX57126Overlap72h$a13) ## shared with No
@@ -1095,7 +954,7 @@ AttObtX57126Overlap72hMJ <- calculate.overlap(list("N. attenuata" = att72MJ,
                                                    "N. obtusifolia" = obt72MJ,
                                                    "N. x 57126" = x5712672MJ,
                                                    "N. x 1027" = x102772MJ))
-dev.off(); grid.draw(venn.diagram(list("N. att" = att72MJ, "N. obt" = obt72MJ, "N.x1027" = x102772MJ, "N. x57126" = x5712672MJ), filename = NULL) )
+pdf("N_x57126_MJ72_venn.pdf");  grid.draw(venn.diagram(list("N. att" = att72MJ, "N. obt" = obt72MJ, "N.x1027" = x102772MJ, "N. x57126" = x5712672MJ), filename = NULL) ); dev.off()
 X57126NaNo72MJ <- length(AttObtX57126Overlap72hMJ$a6) + length(AttObtX57126Overlap72hMJ$a12) ## shared with Na, No
 X57126Na72MJ <- length(AttObtX57126Overlap72hMJ$a4) + length(AttObtX57126Overlap72hMJ$a5)  ## shared with Na
 X57126No72MJ <- length(AttObtX57126Overlap72hMJ$a7) + length(AttObtX57126Overlap72hMJ$a13) ## shared with No
@@ -1136,7 +995,7 @@ df$groups <- factor(x = df$groups, levels = c("N. attenuata", "N. obtusifolia", 
 ##attributes(df$groups) <- list("No"= 2, "NaNo" = 3, "Na" = 1, "novel" = 4)
 library(ggplot2)
 library(dplyr)
-ggplot(arrange(df, groups), aes(y = metabolites, x = treatment, fill = groups)) + 
+p <- ggplot(arrange(df, groups), aes(y = metabolites, x = treatment, fill = groups)) + 
     geom_bar(stat="identity") + 
     scale_fill_manual(values = c(rep(c("red", "blue", "orange", "seagreen4", "plum2", "slateblue", "orange", "seagreen4", "plum2", "slateblue", "grey" ), 3))) + 
     facet_grid(. ~ species) + theme(strip.text = element_text(face = "italic")) + 
@@ -1145,6 +1004,9 @@ ggplot(arrange(df, groups), aes(y = metabolites, x = treatment, fill = groups)) 
           axis.text.x = element_text(size = 8),
           legend.title = element_text(size = 12 ), strip.text=element_text(size=7), 
           legend.text = element_text(face = "italic", size = 12)) 
+
+ggsave(filename = "barplot_control_WOS_MJ_shared_novel.pdf", plot = p, 
+       device = "pdf", width = 10, height = 8.36)
 @
 
 <<inducibility>>=
@@ -1837,104 +1699,6 @@ caffQuinic3indMJ <- order(abs(mzPhenolamidMJ - 355.1014))[3] ## 1 or 2 or 3
 <<MSMS_shinyCircos, eval=FALSE,echo=FALSE,fig.show='hide',warning=FALSE,message=FALSE,results='hide'>>=
 library (MetCirc)
 
-# # ## N. attenuata 0h and 72 WOS
-# colsAtt0 <- c("X92_20ev", "X92_30ev", "X92_40ev", "X92_MS")
-# peaktableBINARY[, colsAtt0] <- peaktableBINARYspecies(peaktable, colsAtt0, background)
-# colsAtt72WOS <- c("X14_20ev", "X14_30ev", "X14_40ev", "X14_MS")
-# peaktableBINARY[, colsAtt72WOS] <- peaktableBINARYspecies(peaktable, colsAtt72WOS, background)
-# 
-# ## N. obtusifolia 0h and 72h WOS
-# colsObt0 <- c("X106_20ev", "X106_30ev", "X106_40ev", "X106_MS")
-# peaktableBINARY[, colsObt0] <- peaktableBINARYspecies(peaktable, colsObt0, background)
-# colsObt72WOS <- c("X27_20ev", "X27_30ev", "X27_40ev", "X27_MS")
-# peaktableBINARY[, colsObt72WOS] <- peaktableBINARYspecies(peaktable, colsObt72WOS, background)
-# 
-# ## N. clevelandii 0h and 72h WOS
-# colsClev0 <- c("X124_20ev", "X124_30ev", "X124_40ev", "X124_MS")
-# peaktableBINARY[, colsClev0] <- peaktableBINARYspecies(peaktable, colsClev0, background)
-# colsClev72WOS <- c("X42_20ev", "X42_30ev", "X42_40ev", "X42_MS")
-# peaktableBINARY[, colsClev72WOS] <- peaktableBINARYspecies(peaktable, colsClev72WOS, background)
-# 
-# ## N. quadrivalvis 0h and 72h WOS
-# colsQuad0 <- c("X138_20ev", "X138_30ev", "X138_40ev", "X138_MS")
-# peaktableBINARY[, colsQuad0] <- peaktableBINARYspecies(peaktable, colsQuad0, background)
-# colsQuad72WOS <- c("X57_20ev", "X57_30ev", "X57_40ev", "X57_MS")
-# peaktableBINARY[, colsQuad72WOS] <- peaktableBINARYspecies(peaktable, colsQuad72WOS, background)
-# 
-# ## N. x10/27 0h and 72h WOS
-# colsX10270 <- c("X154_20ev", "X154_30ev", "X154_40ev", "X154_MS")
-# peaktableBINARY[, colsX10270] <- peaktableBINARYspecies(peaktable, colsX10270, background)
-# colsX102772WOS <- c("X73_20ev", "X73_30ev", "X73_40ev", "X73_MS")
-# peaktableBINARY[, colsX102772WOS] <- peaktableBINARYspecies(peaktable, colsX102772WOS, background)
-# 
-# ## N. x57/126 0h and 72h WOS
-# colsX571260 <- c("X170_20ev", "X170_30ev", "X170_40ev", "X170_MS")
-# peaktableBINARY[, colsX571260] <- peaktableBINARYspecies(peaktable, colsX571260, background)
-# colsX5712672WOS <- c("X86_20ev", "X86_30ev", "X86_40ev", "X86_MS")
-# peaktableBINARY[, colsX5712672WOS] <- peaktableBINARYspecies(peaktable, colsX5712672WOS, background)
-# 
-# # ## now truncate object MSMS, so that it only contains features which show up in species
-# # ## truncate first peaktable so that it only contains lines with present features
-# peaktableBINARYSpecies_cut <- function(pt, colname) {
-#     ptBin <- pt[pt[, colname] == 1, c("mz", "rt", colname, "isotopes", "adduct", "pcgroup", "npeaks")]
-#     return(ptBin)
-# }
-# ptBINARYAtt <- peaktableBINARYSpecies_cut(peaktableBINARY, "X14_MS")
-# ptBINARYObt <- peaktableBINARYSpecies_cut(peaktableBINARY, "X27_MS")
-# ptBINARYClev <- peaktableBINARYSpecies_cut(peaktableBINARY, "X42_MS")
-# ptBINARYQuad <- peaktableBINARYSpecies_cut(peaktableBINARY, "X57_MS")
-# ptBINARYX1027 <- peaktableBINARYSpecies_cut(peaktableBINARY, "X73_MS")
-# ptBINARYX57126 <- peaktableBINARYSpecies_cut(peaktableBINARY,"X86_MS")
-# 
-# ## write for each species to binary table mm72WOS
-# mm72WOS <- matrix(nrow = length(uniquePrecursor), ncol = 6)
-# rownames(mm72WOS) <- uniquePrecursor
-# # 
-# # ## create function
-# writeToBinaryMatrix <- function(ptBINARYSpecies, MSMS) {
-#     mzVsRTbalance <- 1000
-#     MSMS_species <- cbind(MSMS, numeric(length(dim(MSMS)[1])))
-#     colnames(MSMS_species)[5] <- "presence"
-#     precursor <- as.character(MSMS_species[, "pcgroup_precursorMZ"])
-#     uniquePrecursor <- unique(precursor)
-#     for (i in 1:length(ptBINARYSpecies[,"mz"])) {
-#         objective <- mzVsRTbalance * (abs(ptBINARYSpecies[i,"mz"] - MSMS_species[,"mz"])) + abs(ptBINARYSpecies[i, "rt"] - MSMS[, "rt"])
-#         objective_threshold <- objective < 0.5
-#         MSMS_species[objective_threshold, 5] <- 1
-#     }
-#     ## filter
-#     ## set presence for all features to 1 when more than 90% have presence == 1
-#     for (i in 1:length(uniquePrecursor)) {
-#         inds <- which(uniquePrecursor[i] == precursor)
-#         if ( (sum(MSMS_species[inds, "presence"]) / length(inds)) > 0.9) {
-#             MSMS_species[inds, "presence"] <- 1
-#         } else {MSMS_species[inds, "presence"] <- 0}
-#     }
-# 
-#     binary <- numeric(length(uniquePrecursor))
-# 
-#     ## write to binary table
-#     for (i in 1:length(uniquePrecursor)) {
-#         inds <- which(uniquePrecursor[i] == precursor)[1]
-#         if (MSMS_species[inds, "presence"] == 0) {binary[i] <- 0} else {binary[i] <- 1}
-#     }
-# 
-#     return(binary)
-# }
-# # 
-# ## N. attenuata
-# mm72WOS[, 1] <- writeToBinaryMatrix(ptBINARYAtt, MSMS)
-# ## N. obtusifolia
-# mm72WOS[, 2] <- writeToBinaryMatrix(ptBINARYObt, MSMS)
-# ## N. clevelandii
-# mm72WOS[, 3] <- writeToBinaryMatrix(ptBINARYClev, MSMS)
-# ## N. quadrivalvis
-# mm72WOS[, 4] <- writeToBinaryMatrix(ptBINARYQuad, MSMS)
-# ## N. x obtusiata 10/27
-# mm72WOS[, 5] <- writeToBinaryMatrix(ptBINARYX1027, MSMS)
-# ## N. x obtusiata 57/126
-# mm72WOS[, 6] <- writeToBinaryMatrix(ptBINARYX57126, MSMS)
-
 ## change that it is compatible with convert2MSP
 MSMS_att <- MSMS_mod[which(MSMS_mod[, "att72WOS"] == 1),]
 finalMSMS_att <- convert2MSP(MSMS_att, splitPattern = "_", splitIndMZ = 1, splitIndRT = 2, rt = TRUE)
@@ -1956,6 +1720,10 @@ finalMSP <- combine(finalMSP, finalMSMS_quad)
 finalMSP <- combine(finalMSP, finalMSMS_x1027)
 finalMSP <- combine(finalMSP, finalMSMS_x57126)
  
+save(MSMS_mod, MSMS_att, MSMS_obt, MSMS_clev, MSMS_quad, MSMS_x1027, MSMS_x57126, 
+     finalMSMS_att, finalMSMS_obt, finalMSMS_clev, finalMSMS_quad, finalMSMS_x1027, finalMSMS_x57126,
+     finalMSP, file = "MSMS_aftermapping.RData")
+load("MSMS_aftermapping.RData")
 ##finalMSPNL <- msp2FunctionalLossesMSP(finalMSP)
 
 species <- c(rep("att", length = length(finalMSMS_att)), rep("obt", length = length(finalMSMS_obt)), 
@@ -1967,7 +1735,7 @@ similarityMat <- createSimilarityMatrix(binnedMSP, m = 0.5, n = 2)
 ##similarityMatNL <- createSimilarityMatrix(binnedMSPNL)
 
 #####hClustMSPd <- hcluster(similarityMat, method = "spearman")
-hClustMSPd <- hcluster(similarityMat, method = "euclidean", link = "average")
+hClustMSPd <- hclust(dist(similarityMat), method = "ward.D")
 plot(hClustMSPd, labels = FALSE)
 shinyCircos(similarityMat, finalMSP)
 cutTreeMSP <- cutree(hClustMSPd, k = 5)
