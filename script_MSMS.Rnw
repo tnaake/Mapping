@@ -92,9 +92,8 @@ load("./metabolicProfiling.RData")
 #colMin <- which(colnames(peaklist) == "X001_BA4_01_28001")
 #colMax <- which(colnames(peaklist) == "X180_RD2_01_28200")
 #cols <- colMin:colMax
-#peaklistConc <- peaklist
-#peaklistConc[, cols] <- apply(peaklist[, cols], 2, FUN = function(x) (x / quantile(x, 0.75)))
-#peaklist[, cols] <- apply(peaklist[, cols], 2, FUN = function(x) (x / quantile(x, 0.75) + 1))
+#peaklist[, cols] <- peaklist[, cols] + 1
+#peaklist[, cols] <- apply(peaklist[, cols], 2, FUN = function(x) (x / quantile(x, 0.75)))
 # ## without peak filling (to get number of compounds)
 # an2 <- xsAnnotate(xset4)
 # anF2 <- groupFWHM(an2, perfwhm = 0.6)
@@ -102,11 +101,13 @@ load("./metabolicProfiling.RData")
 # anIC2 <- groupCorr(anI2, cor_eic_th = 0.75, graphMethod = "lpc")
 # anFA2 <- findAdducts(anIC2, polarity = "positive")
 #peaklist2 <- getPeaklist(anFA2)
-#peaklist2[, cols] <- apply(peaklist2[, cols], 2, FUN = function(x) (x / quantile(x, 0.75, na.rm = TRUE) + 1))
+#peaklist2[, cols] <- peaklist2[, cols] +1 
+#peaklist2[, cols] <- apply(peaklist2[, cols], 2, FUN = function(x) (x / quantile(x, 0.75, na.rm = TRUE) ))
 ## write pcgroups of peaklist to peaklist2
 #peaklist2[, "pcgroup"] <- peaklist[, "pcgroup"]
 # save(an, anF, anI, anIC, anFA, peaklist, an2, anF2, anI2, anIC2, anFA2, peaklist2, file = "./CAMERA_complete.RData")
 load("./CAMERA_complete.RData")
+write.table(peaklist, file = "peaklist_xcms_CAMERA_C_WOS_MJ.csv", col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
 @
 
 
@@ -165,13 +166,6 @@ gradientMSMS[which(precursorRT_minute <= 0)] <- 0.9
 gradientMSMS[which(precursorRT_minute > 0)] <- 0.90 - 0.01923077 * precursorRT_minute[which(precursorRT_minute > 0)]
 gradientMSMS[which(precursorRT_minute >= 39)] <- 0.15 ## between 1min and 40min there is gradient phase
 
-## gradient = 0.90 - 0.0727 * minute --> minute = (0.9 - gradient) / 0.0727
-## +1  since 1 min isocratic 90% A
-
-##gradient_mapped_minute <- (0.9 - gradient ) / 0.07272727272727 + 1
-##gradient_mapped <- gradient_mapped_minute * 60
-
-precursorMZ[1]
 ## profiling data for W+OS
 ##load("/home/thomas/Documents/University/Master/MScArbeit/Metabolic_profiling/WOS_0h_72h/metabolicProfiling.RData")
 ##load("/home/thomas/Documents/University/Master/MScArbeit/Metabolic_profiling/WOS_0h_72h/CAMERA_complete.RData")
@@ -767,7 +761,7 @@ MSMS_mod <- MSMS_mod[MSMS_mod[, "id"] %in% unlist(mapping_l),]
 
 write.table(MSMS_mod[which(MSMS_mod[, "att0"] == 0 & MSMS_mod[, "obt0"] == 0 & MSMS_mod[, "att72WOS"] == 0 & MSMS_mod[, "obt72WOS"] == 0 & MSMS_mod[, "att72MJ"] == 0 & MSMS_mod[, "obt72MJ"] == 0 ), c("mz", "rt", "intensity", "id", "att0", "obt0", "clev0", "quad0", "x10270", "x571260", "att72WOS", 
          "obt72WOS", "clev72WOS", "quad72WOS", "x102772WOS", "x5712672WOS", "att72MJ", "obt72MJ", "clev72MJ",
-         "quad72MJ", "x102772MJ", "x5712672MJ")], file = "metabolic_innovations.lst", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+         "quad72MJ", "x102772MJ", "x5712672MJ")], file = "metabolic_innovations.lst", sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 
 @
 
